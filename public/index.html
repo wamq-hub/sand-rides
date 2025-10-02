@@ -6,217 +6,1044 @@
   <title>ساند - نظام توصيل المتدربين</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-        :root{
-      --bg-grad: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-      --card-bg: #fff;
-      --text: #1f2937;
-      --muted: #495057;
-      --border: #e9ecef;
-      --header-grad: linear-gradient(135deg,#2c5aa0 0%,#1e3c72 100%);
-      --chip-ok-bg:#d4edda; --chip-ok-text:#155724;
-      --chip-warn-bg:#fff3cd; --chip-warn-text:#856404;
+    :root{
+      /* لوحة TVTC تقريبية */
+      --tvtc-blue:#1e3c72;   /* أزرق رئيسي */
+      --tvtc-teal:#00a49a;   /* أخضر مُزرق */
+      --tvtc-navy:#0b1f3a;   /* أزرق داكن */
+
+      --bg-grad:linear-gradient(135deg,var(--tvtc-blue) 0%,var(--tvtc-teal) 100%);
+      --header-grad:linear-gradient(135deg,var(--tvtc-navy) 0%,var(--tvtc-blue) 100%);
+
+      --card-bg:#fff;
+      --text:#1f2937;
+      --muted:#495057;
+      --border:#e9ecef;
+
+      /* شرائح الحالة */
+      --chip-ok-bg:#d4edda;  --chip-ok-text:#155724;
+      --chip-warn-bg:#fff3cd;--chip-warn-text:#856404;
       --chip-bad-bg:#f8d7da; --chip-bad-text:#721c24;
+
+      /* بطاقات الطلب */
+      --req-warn-bg:#fff8e1; --req-warn-bd:#ffcc02;
+      --req-acc-bg:#e8f5e8;  --req-acc-bd:#4caf50;
+      --req-rej-bg:#ffebee;  --req-rej-bd:#f44336;
     }
+
+        :root{
+      --base-fs: 20px; /* الأساس الحالي */
+    }
+
+    /* خلّي الـ rem يعتمد على المتغير */
+    html{ font-size: var(--base-fs); }
+
+    /* الوضع الداكن */
     .dark{
-      --bg-grad: linear-gradient(135deg,#0f172a 0%,#111827 100%);
-      --card-bg: #111827;
-      --text: #e5e7eb;
-      --muted: #cbd5e1;
-      --border: #374151;
-      --header-grad: linear-gradient(135deg,#1f2937 0%,#111827 100%);
+      --bg-grad:linear-gradient(135deg,#0f172a 0%,#0b1f3a 100%);
+      --card-bg:#111827;
+      --text:#e5e7eb;
+      --muted:#cbd5e1;
+      --border:#374151;
+      --header-grad:linear-gradient(135deg,#0b1f3a 0%,#1e3c72 100%);
+
       --chip-ok-bg:#064e3b; --chip-ok-text:#a7f3d0;
       --chip-warn-bg:#92400e; --chip-warn-text:#fde68a;
       --chip-bad-bg:#7f1d1d; --chip-bad-text:#fecaca;
+
+      --req-warn-bg:#2a2610; --req-warn-bd:#b69100;
+      --req-acc-bg:#11331a;  --req-acc-bd:#3aa85e;
+      --req-rej-bg:#3a1618;  --req-rej-bd:#cc3535;
     }
-    body{font-family:'Segoe UI','Tahoma',sans-serif;background:var(--bg-grad);min-height:100vh;padding:20px;color:var(--text)}
-        .field-hint{font-size:.85rem;margin-top:6px}
-    .field-hint.neutral{color:#6b7280}     /* رمادي */
-    .field-hint.good{color:#16a34a}        /* أخضر */
-    .field-hint.warn{color:#b45309}        /* برتقالي */
-    .container{background:var(--card-bg)}
-    .header{background:var(--header-grad);color:#fff}
-    .form-group label{color:var(--muted)}
-    .form-control{border-color:var(--border);background:var(--card-bg);color:var(--text)}
-    .driver-card,.request-card{background:linear-gradient(135deg,rgba(248,249,250,.25) 0%, var(--card-bg) 100%);border:2px solid var(--border)}
-    .status-available,.status-accepted{background:var(--chip-ok-bg);color:var(--chip-ok-text)}
-    .status-pending{background:var(--chip-warn-bg);color:var(--chip-warn-text)}
-    .status-booked,.status-rejected{background:var(--chip-bad-bg);color:var(--chip-bad-text)}
-    .container{max-width:1200px;margin:0 auto;border-radius:15px;box-shadow:0 20px 40px rgba(0,0,0,.1);overflow:hidden}
-    .header-bar{display:flex;align-items:center;gap:12px;justify-content:space-between}
-    .logo-wrap{display:flex;align-items:center;gap:12px}
-    .logo{font-size:1.9rem;font-weight:800}
-    .tagline{opacity:.9;font-size:.95rem}
-    .user-info{display:flex;align-items:center;gap:10px}
+    /* خط أساسي + بدائل عربية آمنة */
+    body{
+      font-family: 'Sakkal Majalla','Noto Naskh Arabic','Cairo','Tajawal','Segoe UI','Tahoma',sans-serif;
+      background:var(--bg-grad);
+      min-height:100vh;
+      color:var(--text);
+      padding:20px;
+      padding-bottom:200px;  /* ✅ زيادة كبيرة */
+    }
+
+    /* تحسين وضوح الحروف */
+    html,body{
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+
+    
+      /* Card موحد للخطوات */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.06);
+        padding: 18px;
+      }
+
+      /* زر Primary و Outline (نفس الألوان) */
+      .btn-primary {
+        background: linear-gradient(135deg, var(--tvtc-blue), var(--tvtc-teal));
+      }
+      .btn-outline {
+        background: transparent;
+        color: var(--tvtc-blue);
+        border: 2px solid var(--tvtc-blue);
+      }
+      .dark .btn-outline {
+        color: #e5e7eb;
+        border-color: #e5e7eb33;
+      }
+
+      /* تركيز الحقول */
+      .form-control:focus {
+        outline: none;
+        border-color: var(--tvtc-blue);
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, .15);
+      }
+
+      /* شارة القسم (Pill) أخف */
+      .section-pill {
+        display:inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card-bg);
+        font-weight: 700;
+      }
+    /* حاوية رئيسية */
+    .container{
+      max-width:1040px;
+      margin:0 auto 180px auto;  /* ✅ زيادة المسافة */
+      border-radius:15px;
+      box-shadow:0 20px 40px rgba(0,0,0,.1);
+      overflow:hidden;
+      background:var(--card-bg);
+    }
+    /* هيدر */
+    .header{
+      background:var(--header-grad);
+      color:#fff;
+      padding:18px 10px;
+    }
+
+    /* الهيدر: أعطِ العمود الأول عرضًا كافيًا */
+    .header-bar{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;  /* عمود أيسر فارغ، عمود وسط للشعار، عمود أيمن للأزرار */
+      align-items:center;
+      gap:12px;
+      position: relative;
+    }
+
+
+
+
     .user-name{font-weight:700}
-    .role-badge{background:#0ea5e9;color:#fff;padding:4px 10px;border-radius:999px;font-size:.85rem}
-    .logout-btn{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;transition:all 0.2s}
+    .role-badge{
+      background:#0ea5e9;
+      color:#fff;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.85rem;
+    }
+
+    .user-actions{display:flex;align-items:center;grid-column: 3;justify-self:end}
+    .logout-btn{
+      background:#ef4444;
+      color:#fff;border:none;border-radius:8px;
+      padding:8px 14px;font-weight:700;cursor:pointer;transition:.2s
+    }
     .logout-btn:hover{background:#dc2626}
+
+
+    /* شعار مكدّس عموديًا */
+    /* 2) النص في المنتصف */
+      /* ضع الكتلة في العمود الأوسط ووسّط النص */
+      .brand-inline{
+        grid-column: 2;        /* العمود الأوسط */
+        justify-self: center;
+        text-align: center;
+      }
+      
+      .brand-inline .brand-logo-tall{
+        position: static !important;   /* إلغاء الـ absolute */
+        height: 64px;                  /* أو 72px حسب رغبتك */
+        width: auto;
+        transform: none !important;
+        right: auto !important;
+        left: auto !important;
+        top: auto !important;
+        margin: 0 auto;                /* توسيط داخل العمود الأوسط */
+      }
+    .brand-stack{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+    .brand-logo-tall{height:72px;width:auto;display:block;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+    .brand-text .logo{font-size:1.6rem;line-height:1.1;font-weight:800;white-space:nowrap}
+    .brand-text .tagline{font-size:.95rem;opacity:.9;line-height:1.1}
+
+    /* شريط الأرقام في الأعلى */
     .stats-bar{display:flex;justify-content:center;gap:28px;margin-top:10px}
     .stat-item{text-align:center}
     .stat-number{font-size:1.2rem;font-weight:700}
     .stat-label{font-size:.85rem;opacity:.95}
+
+    /* منطقة الدخول */
     .login-section{padding:35px;background:linear-gradient(135deg,#f8f9fa 0%,#ffffff 100%);border-bottom:1px solid #e9ecef}
     .login-container{max-width:520px;margin:0 auto;text-align:center}
     .welcome-message{font-size:1.15rem;color:#2c5aa0;margin-bottom:18px;font-weight:700}
     .login-form{display:none;animation:fade .45s}
     .login-form.active{display:block}
+
+    /* تبويبات */
     .tabs{display:none;background:#f8f9fa;border-bottom:1px solid #dee2e6}
     .tabs.active{display:flex;flex-wrap:wrap}
-    .tab{flex:1;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:#fff;border:0;font-size:1.02rem;font-weight:700;color:#495057}
+    .tab{flex:1;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:#fff;border:0;font-size:1.02rem;font-weight:700;color:#495057;position:relative}
     .tab:hover{background:#e9ecef}
     .tab.active{background:#2c5aa0;color:#fff}
+    .tab.badged .badge{
+      position:absolute;top:6px;inset-inline-end:10px;background:#ef4444;color:#fff;min-width:20px;height:20px;
+      padding:0 6px;border-radius:999px;font-size:.8rem;display:flex;align-items:center;justify-content:center;font-weight:800
+    }
+
+    /* محتوى */
     .content{padding:22px;min-height:440px;display:none}
     .content.active{display:block}
     @keyframes fade{from{opacity:.3;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* نماذج */
     .form-group{margin-bottom:16px}
-    .form-control{width:100%;padding:12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;transition:border-color 0.2s;background:var(--card-bg);color:var(--text)}
+    .form-group label{color:var(--muted)}
+    .form-control{width:100%;padding:12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;transition:.2s;background:var(--card-bg);color:var(--text)}
     .form-control:focus{outline:none;border-color:#2c5aa0;box-shadow:0 0 0 3px rgba(44,90,160,.12)}
-    .btn{background:linear-gradient(135deg,#28a745 0%,#20c997 100%);color:#fff;padding:12px 20px;border:none;border-radius:8px;font-weight:800;cursor:pointer;transition:.2s;text-decoration:none;display:inline-block}
+    .field-hint{font-size:.85rem;margin-top:6px}
+    .field-hint.neutral{color:#6b7280}
+    .field-hint.good{color:#16a34a}
+    .field-hint.warn{color:#b45309}
+
+    .btn{background:linear-gradient(135deg,#1cb26b 0%,#11a39b 100%);color:#fff;padding:12px 20px;border:none;border-radius:8px;font-weight:800;cursor:pointer;transition:.2s;text-decoration:none;display:inline-block}
     .btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,.15)}
-    .btn:disabled{background:#6c757d;cursor:not-allowed;transform:none;opacity:0.6}
-    .btn-primary{background:linear-gradient(135deg,#2c5aa0 0%,#1e3c72 100%)}
+    .btn:disabled{background:#6c757d;cursor:not-allowed;transform:none;opacity:.6}
+    .btn-primary{background:linear-gradient(135deg,var(--tvtc-blue) 0%,var(--tvtc-teal) 100%)}
+    .btn-secondary{background:linear-gradient(135deg,#6c757d 0%,#495057 100%);color:#fff}
     .btn-whatsapp{background:linear-gradient(135deg,#25d366 0%,#128c7e 100%);margin-inline:6px;padding:10px 16px;font-size:.92rem}
     .btn-accept{background:linear-gradient(135deg,#4caf50 0%,#45a049 100%)}
     .btn-reject{background:linear-gradient(135deg,#f44336 0%,#d32f2f 100%)}
     .btn-contact{background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%)}
-    .driver-card,.request-card{background:linear-gradient(135deg,rgba(248,249,250,.25) 0%, var(--card-bg) 100%);border:2px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;transition:.2s}
+
+    .dashboard-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
+    .stat-card{background:linear-gradient(135deg,var(--tvtc-blue) 0%,var(--tvtc-teal) 100%);color:#fff;padding:16px;border-radius:12px;text-align:center}
+    .stat-card .stat-number{font-size:1.7rem;margin-bottom:6px}
+
+    .driver-card,.request-card{background:linear-gradient(135deg,rgba(248,249,250,.25) 0%,var(--card-bg) 100%);border:2px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;transition:.2s}
     .driver-card:hover,.request-card:hover{border-color:#2c5aa0;transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.08)}
-    .request-card{border-color:#ffcc02;background:linear-gradient(135deg,#fff8e1 0%,#ffffff 100%)}
-    .request-card.accepted{border-color:#4caf50;background:linear-gradient(135deg,#e8f5e8 0%,#ffffff 100%)}
-    .request-card.rejected{border-color:#f44336;background:linear-gradient(135deg,#ffebee 0%,#ffffff 100%)}
+
+    .request-card{border-color:var(--req-warn-bd);background:linear-gradient(135deg,var(--req-warn-bg) 0%,var(--card-bg) 100%)}
+    .request-card.accepted{border-color:var(--req-acc-bd);background:linear-gradient(135deg,var(--req-acc-bg) 0%,var(--card-bg) 100%)}
+    .request-card.rejected{border-color:var(--req-rej-bd);background:linear-gradient(135deg,var(--req-rej-bg) 0%,var(--card-bg) 100%)}
+
     .driver-info,.request-header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-bottom:10px}
     .driver-details h3,.request-title{color:#2c5aa0;margin-bottom:6px;font-size:1.06rem}
     .driver-details p,.request-details p{margin-bottom:4px;color:#555}
     .rating{color:#ffc107}
-    .status-available,.status-accepted{background:#d4edda;color:#155724;padding:4px 10px;border-radius:18px;font-size:.85rem;font-weight:800}
-    .status-booked,.status-rejected{background:#f8d7da;color:#721c24;padding:4px 10px;border-radius:18px;font-size:.85rem;font-weight:800}
-    .status-pending{background:#fff3cd;color:#856404;padding:4px 10px;border-radius:18px;font-size:.85rem;font-weight:800}
-    .dashboard-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
-    .stat-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px;border-radius:12px;text-align:center}
-    .stat-card .stat-number{font-size:1.7rem;margin-bottom:6px}
+
+    .status-available,.status-accepted{background:var(--chip-ok-bg);color:var(--chip-ok-text);padding:4px 10px;border-radius:999px;font-weight:700}
+    .status-booked,.status-rejected{background:var(--chip-bad-bg);color:var(--chip-bad-text);padding:4px 10px;border-radius:999px;font-weight:700}
+    .status-pending{background:var(--chip-warn-bg);color:var(--chip-warn-text);padding:4px 10px;border-radius:999px;font-weight:700}
+
     .alert{padding:12px;border-radius:8px;margin-bottom:14px}
     .alert-success{background:#d4edda;border:1px solid #c3e6cb;color:#155724}
     .alert-info{background:#cce7ff;border:1px solid #99d6ff;color:#0c5460}
     .alert-warning{background:#fff3cd;border:1px solid #ffeaa7;color:#856404}
     .alert-error{background:#f8d7da;border:1px solid #f5c2c7;color:#721c24}
+
     .loading{text-align:center;padding:16px}
     .spinner{border:4px solid #f3f3f3;border-top:4px solid #2c5aa0;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;margin:0 auto}
     @keyframes spin{to{transform:rotate(360deg)}}
+
     .checkbox-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:6px}
     .checkbox-item{display:flex;align-items:center;gap:8px}
-    .notification-badge{position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;border-radius:50%;width:20px;height:20px;font-size:.8rem;display:flex;align-items:center;justify-content:center}
-    .back-to-selection{margin-bottom:15px}
-    .btn-secondary{background:linear-gradient(135deg,#6c757d 0%,#495057 100%);color:#fff}
+
+    /* شريط حالة الاتصال */
     .connbar{display:flex;align-items:center;gap:10px;justify-content:center;background:#0b132b;color:#fff;padding:10px;margin-top:10px;border-radius:12px}
     .conn-dot{width:10px;height:10px;border-radius:50%}
     .conn-online{background:#22c55e}
     .conn-connecting{background:#f59e0b}
     .conn-offline{background:#ef4444}
     .conn-text{font-weight:700}
-          .tab.badged{position:relative}
-      .tab.badged .badge{
-        position:absolute;top:6px;inset-inline-end:10px;
-        background:#ef4444;color:#fff;min-width:20px;height:20px;
-        padding:0 6px;border-radius:999px;font-size:.8rem;
-        display:flex;align-items:center;justify-content:center;
-        font-weight:800;
+
+    /* شاشة تعريف تغطي الصفحة كاملة */
+    .intro-screen{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg-grad);padding:24px;overflow:auto}
+    .intro-content{width:min(92vw,860px);max-height:92vh;overflow:auto;background:#ffffffd1;backdrop-filter:blur(6px);border-radius:18px;box-shadow:0 20px 40px rgba(0,0,0,.12);padding:24px;text-align:center}
+    .intro-hero{display:block;max-width:100%;height:auto;border-radius:14px;margin:0 auto 14px}
+    .intro-start{padding:12px 22px;border:0;border-radius:999px;font-weight:700;cursor:pointer;background:#0f172a;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.18);margin:10px 6px}
+    .intro-start:active{transform:scale(.98)}
+    .intro-loader{display:none;font-weight:700;margin-top:8px}
+    .intro-loader.show{display:block}
+    html:not(.app-ready) .container,
+    html:not(.app-ready) .connbar,
+    html:not(.app-ready) .site-footer{display:none!important}
+    html:not(.app-ready),html:not(.app-ready) body{height:100%;overflow:hidden}
+    html.app-ready #intro-screen{display:none!important}
+
+    /* زر دعم عائم */
+    .support-fab{position:fixed;inset-inline-end:18px;bottom:84px;z-index:9998}
+    .support-fab button.main{width:52px;height:52px;border:0;border-radius:999px;cursor:pointer;background:linear-gradient(135deg,#1e3c72 0%,#00a49a 100%);color:#fff;font-size:22px;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+    .support-menu{position:absolute;inset-inline-end:0;bottom:62px;display:none;gap:8px;flex-direction:column;align-items:flex-end}
+    .support-menu a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;background:#111827;border-radius:999px;padding:10px 12px;font-weight:800;box-shadow:0 10px 20px rgba(0,0,0,.15)}
+    .support-menu a .ico{width:26px;height:26px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.12)}
+    .support-menu a.wa{background:#128c7e}
+    .support-menu a.mail{background:#0b5ed7}
+    .support-fab.open .support-menu{display:flex}
+    .support-tip.show{opacity:1;transform:translateY(0)}
+      /* تلميح ترحيبي محسّن */
+      .welcome-support-tooltip{
+        position: fixed;
+        inset-inline-end: 82px;
+        bottom: 94px;
+        z-index: 9999;
+        background: linear-gradient(135deg, #1e3c72 0%, #00a49a 100%);
+        color: #fff;
+        padding: 0;
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        opacity: 0;
+        transform: translateX(20px) scale(0.9);
+        pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 260px;
+        animation: tooltipPulse 2s ease-in-out infinite;
       }
+
+      .welcome-support-tooltip.show{
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        pointer-events: auto;
+      }
+
+      @keyframes tooltipPulse{
+        0%, 100%{ box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
+        50%{ box-shadow: 0 12px 38px rgba(30, 60, 114, 0.4); }
+      }
+
+      .tooltip-arrow{
+        position: absolute;
+        inset-inline-start: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-inline-start: 10px solid #00a49a;
+      }
+
+      .tooltip-content{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+
+      .tooltip-icon{
+        font-size: 2rem;
+        line-height: 1;
+        animation: tooltipWave 1.5s ease-in-out infinite;
+      }
+
+      @keyframes tooltipWave{
+        0%, 100%{ transform: rotate(0deg); }
+        25%{ transform: rotate(-15deg); }
+        75%{ transform: rotate(15deg); }
+      }
+
+      .tooltip-text{
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .tooltip-text strong{
+        font-size: 0.95rem;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .tooltip-text span{
+        font-size: 0.8rem;
+        opacity: 0.9;
+        line-height: 1.2;
+      }
+
+      /* زر إغلاق خفي للتلميح */
+      .welcome-support-tooltip::after{
+        content: '×';
+        position: absolute;
+        top: 4px;
+        inset-inline-end: 8px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+        line-height: 1;
+      }
+
+      .welcome-support-tooltip:hover::after{
+        opacity: 1;
+      }
+
+      /* للجوال */
+      @media (max-width: 768px){
+        .welcome-support-tooltip{
+          inset-inline-end: 72px;
+          bottom: 154px;
+          max-width: 220px;
+        }
+        
+        .tooltip-content{
+          padding: 10px 12px;
+          gap: 10px;
+        }
+        
+        .tooltip-icon{
+          font-size: 1.6rem;
+        }
+        
+        .tooltip-text strong{
+          font-size: 0.85rem;
+        }
+        
+        .tooltip-text span{
+          font-size: 0.75rem;
+        }
+      }
+
+      /* إخفاء عند عدم الجاهزية */
+      html:not(.app-ready) .welcome-support-tooltip{
+        display: none !important;
+      }
+    /* فوتر ثابت */
+    .site-footer{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(11, 31, 58, 0.98));
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 9999;
+      padding: 8px 16px;  /* تقليل المسافة الداخلية */
+    }
+
+    .footer-content{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .footer-logo{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-icon{
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .footer-text{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .footer-text strong{
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+
+    .footer-text span{
+      font-size: 0.75rem;  /* تصغير الخط */
+      color: #fff;
+      font-weight: 700;
+      line-height: 1.3;  /* تقليل المسافة بين الأسطر */
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+    }
+
+    .footer-institute{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .institute-badge{
+      background: linear-gradient(135deg, var(--tvtc-blue), var(--tvtc-teal));
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(30, 60, 114, 0.3);
+    }
+
+    .version{
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px){
+      .site-footer{ padding: 6px 10px; }  /* مسافة أصغر */
+      
+      .footer-content{
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+      
+      .footer-logo{
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .footer-text{
+        align-items: center;
+      }
+      
+      .footer-text strong{
+        font-size: 0.65rem;
+      }
+      
+      .footer-text span{
+        font-size: 0.7rem;  /* أصغر للجوال */
+        line-height: 1.2;
+      }
+      
+      .footer-institute{
+        align-items: center;
+      }
+      
+      .institute-badge{
+        font-size: 0.75rem;
+        padding: 5px 12px;
+      }
+    }
+    /* رسالة ترحيب */
+    .welcome-banner{
+      background: linear-gradient(135deg, #1e3c72, #00a49a);
+      color: #fff;
+      padding: 12px 20px;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      animation: slideDown 0.5s ease-out;
+      font-weight: 700;
+    }
+    @keyframes slideDown{
+      from{ opacity: 0; transform: translateY(-20px); }
+      to{ opacity: 1; transform: translateY(0); }
+    }
+    /* أدوات */
+    .hidden{display:none!important}
+
+    /* سماكات عامة للتحكّم داخل الجمل */
+    .w-thin    { font-weight: 300; }  /* رفيع (عناوين فرعية/نص ثانوي) */
+    .w-regular { font-weight: 400; }  /* عادي */
+    .w-bold    { font-weight: 700; }  /* عريض (مهم) */
+
+    /* تأكيد وضوح العناوين المهمة */
+    .em-high   { font-weight: 700; font-size: 1.05em; letter-spacing: .1px; }
+    .em-med    { font-weight: 600; }
+    .em-low    { font-weight: 400; opacity: .92; }
+
+
+    /* ===== تكبير واجهة الرئيسية فقط ===== */
+    #homeContent { 
+      font-size: 1.25rem;          /* يكبّر كل نصوص القسم */
+      line-height: 1.8;
+    }
+    #homeContent .section-lead { margin-bottom: 12px; }
+
+    /* عنوان الترحيب */
+    #homeContent h2{
+      font-size: clamp(1.9rem, 3vw, 2.4rem);
+    }
+
+    /* بطاقات الإحصائيات في الرئيسية */
+    #homeContent .stat-card .stat-number{
+      font-size: clamp(2rem, 3vw, 2.4rem);
+    }
+    #homeContent .stat-card .stat-label{
+      font-size: 1.05rem;
+    }
+
+        /* فاصل رفيع تحت الشعار */
+    .header-split{
+      height: 1px;
+      background: rgba(255,255,255,.25);
+      margin: 10px 0 12px;
+    }
+
+
+    /* زر محايد صغير للأكشنات (الوضع الداكن) */
+    .pill-btn{
+      background:#111827;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      padding:8px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .pill-btn:hover{ opacity:.9 }
+
+
+    /* (اختياري) صغّر الشارة قليلاً */
+    .header-sub .role-badge{ flex: none; }
+      
+
+            /* الحالة الافتراضية: الوسط */
+      .header .stats-bar{
+        justify-content: center;
+      }
+
+      /* قبل تسجيل الدخول: تأكيد التوسيط */
+      .mode-login .header .stats-bar{
+        justify-content: center;
+      }
+
+
+            /* Divider وسطي بنص في المنتصف */
+      .section-divider{
+        position: relative;
+        text-align: center;
+        margin: 18px 0 8px;
+      }
+      .section-divider span{
+        display:inline-block;
+        background: var(--card-bg);
+        padding: 4px 12px;
+        font-weight: 800;
+        border-radius: 999px;
+        border: 2px solid var(--border);
+      }
+      .section-divider::before{
+        content:"";
+        position:absolute;
+        inset-inline: 0;
+        top: 50%;
+        height: 2px;
+        background: var(--border);
+        z-index: 0;
+      }
+      .section-divider span{ position: relative; z-index: 1; }
+
+      /* نص تعريفي بسيط تحت العنوان */
+      .section-lead{
+        text-align:center;
+        color: var(--muted);
+        margin: 6px auto 12px;
+        max-width: 820px;
+        line-height: 1.8;
+      }
+
+
+            /* أخفِ سطر الترحيب بعد تسجيل الدخول */
+      .mode-app #homeContent h2{ display:none; }
+
+      /* (اختياري) قلّل المسافة فوق البطاقات لما يختفي العنوان */
+      .mode-app #homeContent .dashboard-stats{ margin-top: 4px; }
+
+      /* الاسم + الشارة على سطر واحد ملاصقين */
+      .header-sub .user-title{
+        display: inline-flex;
+        align-items: baseline;
+        gap: 10px;
+        justify-content: flex-end;     /* RTL: يمين */
+        min-width: 0;
+      }
+
+      .header-sub .user-name{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+        line-height: 1.4;
+        font-weight: 800;
+        max-width: min(42vw, 520px);   /* لا يزاحم الإحصائيات */
+      }
+
+
+
+      /* زر الخروج يثبت في العمود الثالث (أقصى اليسار في RTL) */
+      .header-sub .logout-btn{
+        justify-self: start;
+      }
+
+      /* استجابة للجوال: رصّ عمودي مع توسيط الكل */
+      @media (max-width:768px){
+        .header-sub{
+          grid-template-columns: 1fr;
+          row-gap: 8px;
+        }
+        .header-sub .user-title{ justify-content: center; }
+        .header-sub .stats-bar{ justify-content: center; }
+        .header-sub .logout-btn{ justify-self: center; }
+      }
+
+
     @media (max-width:768px){
-      .tabs{flex-direction:column}
+      body{
+        padding-bottom:260px;  /* ✅ الآن داخل body */
+      }
+      
+      .container{
+        margin-bottom:180px;
+      }
+      
+      .header-bar{
+        grid-template-columns: 1fr;
+      }
+      
+      .brand-inline{ order: 1; justify-self: center; }
+      .user-actions{ order: 2; justify-self: center; }
       .driver-info,.request-header{grid-template-columns:1fr}
-      .header-bar{flex-direction:column;align-items:flex-start;gap:8px}
+      .brand-logo-tall{height:56px}
+      .brand-text .logo { font-size: clamp(1.6rem, 2.2vw, 2.1rem); }
+      .stat-number { font-size: clamp(1.4rem, 2vw, 1.8rem); }
+      .brand-text .tagline{display:none}
+      .tabs{flex-direction:column}
+    }
+
+
+    .tabs .tab[data-tab="housing"]{ display:none !important; }
+
+
+          /* شريط الإحصائيات السفلي */
+      .stats-bottom-bar{
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 70px; /* فوق الفوتر */
+        z-index: 9000;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding: 10px 20px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .dark .stats-bottom-bar{
+        background: rgba(17, 24, 39, 0.85);
+        border-top-color: rgba(255, 255, 255, 0.05);
+      }
+
+      .stat-glass-card{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 8px 14px;
+        transition: all 0.3s ease;
+      }
+
+      .stat-glass-card:hover{
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .stat-icon{
+        font-size: 1.8rem;
+        line-height: 1;
+      }
+
+      .stat-content{
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stat-glass-card .stat-number{
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+      }
+
+      .stat-glass-card .stat-label{
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1;
+      }
+
+      /* استجابة للجوال */
+      @media (max-width: 768px){
+        .stats-bottom-bar{
+          bottom: 75px;
+          flex-wrap: wrap;
+          padding: 10px 8px;
+          gap: 6px;
+        }
+        
+        .stat-glass-card{
+          flex: 1 1 100%;
+          padding: 8px 12px;
+        }
+        
+        .stat-icon{
+          font-size: 1.6rem;
+        }
+        
+        .stat-glass-card .stat-number{
+          font-size: 1.1rem;
+        }
+        
+        .stat-glass-card .stat-label{
+          font-size: 0.8rem;
+        }
+      }
+           
+
+      /* إخفاء الشريط قبل تسجيل الدخول */
+      html:not(.app-ready) .stats-bottom-bar{
+        display: none !important;
+      }
+
+
+          /* شارة حالة أنيقة */
+    .status-badge{
+      position: fixed;
+      bottom: 20px;
+      inset-inline-start: 20px;
+      z-index: 1000;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1f2937;
+      transition: all 0.3s ease;
+    }
+
+    .dark .status-badge{
+      background: rgba(17, 24, 39, 0.95);
+      color: #e5e7eb;
+    }
+
+    .status-dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse{
+      0%, 100%{ opacity: 1; transform: scale(1); }
+      50%{ opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .status-dot.online{
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+
+    .status-dot.offline{
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+
+    .status-dot.loading{
+      background: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+    }
+
+    .status-badge.hidden{
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px){
+      .status-badge{
+        bottom: 150px;
+        inset-inline-start: 10px;
+        font-size: 0.75rem;
+        padding: 8px 12px;
+      }
     }
   </style>
 </head>
 <body>
+
+  <!-- شاشة تعريف بالمبادرة (Overlay) -->
+  <section id="intro-screen" class="intro-screen">
+    <div class="intro-content">
+      <img src="assets/intro-hero.jpg" alt="تعريف بالمبادرة" class="intro-hero" loading="eager" decoding="async" fetchpriority="high">
+      <button id="startBtn" class="intro-start">انطلق</button>
+      <div id="introLoader" class="intro-loader" aria-hidden="true">جاري التحميل...</div>
+    </div>
+  </section>
+
+  <!-- إطار الصفحة -->
   <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-bar">
-        <div class="logo-wrap">
-          <div>
-            <div class="logo">🚗 ساند</div>
-            <div class="tagline">منصة توصيل المتدربين التطوعية</div>
+    
+      <!-- ضع الهيدر هنا -->
+      <header class="header">
+        <div class="header-bar">
+          <div class="brand-inline">
+            <div class="brand-stack">
+              <img src="assets/logo-college.png" alt="شعار المؤسسة" class="brand-logo-tall">
+              <div class="brand-text">
+                <div class="logo">مبادرة ساند للمتدربين</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-actions">
+            <button id="statsBtn" class="hidden btn btn-secondary" type="button">لوحة الإحصائيات</button>
+            <button class="pill-btn" id="themeToggleBtn" type="button" style="background:#111827">الوضع الداكن</button>
           </div>
         </div>
-        <div class="user-info" id="topUserInfo" style="display:none">
-          <span class="user-name" id="userName" aria-live="polite">...</span>
-          <span class="role-badge" id="userRole">راكب</span>
+
+        <div class="header-split"></div>
+
+        <!-- سطر موحّد: اسم + شارة | الإحصائيات | تسجيل خروج -->
+        <div class="header-sub"> 
+          <div class="user-title" id="topUserInfo" style="display:none">
+            <span class="user-name" id="userName" aria-live="polite">...</span>
+            <span class="role-badge" id="userRole">متدرب</span>
+          </div>
           <button class="logout-btn" id="logoutBtn" type="button">تسجيل الخروج</button>
         </div>
-        <button class="logout-btn" id="themeToggleBtn" type="button" style="background:#111827">الوضع الداكن</button>
-      </div>
-      <div class="stats-bar">
-        <div class="stat-item"><div class="stat-number" id="totalUsersHeader">-</div><div class="stat-label">مستخدم نشط</div></div>
-        <div class="stat-item"><div class="stat-number" id="totalTripsHeader">-</div><div class="stat-label">رحلة مكتملة</div></div>
-        <div class="stat-item"><div class="stat-number" id="satisfactionHeader">-</div><div class="stat-label">تقييم الخدمة</div></div>
-      </div>
-    </div>
+      </header>
 
-    <!-- Login -->
-    <div class="login-section" id="loginSection">
+    <!-- قسم الدخول -->
+    <section class="login-section" id="loginSection">
       <div class="login-container">
-        <div class="welcome-message">مرحباً بك في ساند 👋</div>
+        <div class="welcome-message">مرحباً بك في مبادرة ساند للمتدربين</div>
+          <form class="login-form active" id="loginForm" aria-hidden="false" onsubmit="return false;">
 
-        <!-- Login Form (Visible by default) -->
-        <div class="login-form active" id="loginForm" aria-hidden="false">
-          <div class="form-group">
-            <label for="loginTraineeId">رقم المتدرب</label>
-            <input type="text" id="loginTraineeId" class="form-control" placeholder="مثال: 4461XXXX" required>
-            <small id="loginIdHint" class="field-hint neutral">
-            تنويه: الرقم التدريبي عادةً يبدأ بـ 4451 أو 4461
-            </small>
+            <!-- ساند للمواصلات (أولاً) -->
+            <!-- بطاقة: ساند للمواصلات -->
+              <div class="card" style="margin-bottom:16px">
+                <span class="section-pill">ساند للمواصلات</span>
+                <p class="section-lead" style="margin-top:10px">
+                  ساند للمواصلات مبادرة تطوعية تربط المتدربين بالسائقين داخل المحافظة
+                  لتنسيق الرحلات اليومية بسرعة وأمان وبأقل مجهود.
+                </p>
 
-          </div>
-              <div class="alert alert-info">
-                <strong>ملاحظة:</strong> سيتم التحقق من رقمك في قائمة المتدربين. 
-                إذا لم تكن موجودًا في القائمة، فلن يُسمح بالتسجيل ويُرجى التواصل مع المنشأة التدريبية.
+                <div class="form-group" style="margin-top:12px">
+                  <label for="loginTraineeId">رقم المتدرب</label>
+                  <input type="text" id="loginTraineeId" class="form-control" placeholder="مثال: 4461XXXX" required>
+                  <small id="loginIdHint" class="field-hint neutral" style="display:none"></small>
+                </div>
+
+                <div class="alert alert-info">
+                  <strong>ملاحظة:</strong> سيتم التحقق من رقمك في قائمة المتدربين.
+                  إذا لم تكن موجودًا في القائمة، فلن يُسمح بالتسجيل ويُرجى التواصل مع المنشأة التدريبية.
+                </div>
+
+                <button class="btn btn-primary" id="loginBtn" type="button">دخول إلى ساند المواصلات</button>
               </div>
-          <button class="btn btn-primary" id="loginBtn" type="button">دخول إلى ساند</button>
-        </div>
+
+              <!-- بطاقة: ساند للسكن -->
+              <div class="card">
+                <span class="section-pill">ساند للسكن</span>
+                <p class="section-lead" style="margin-top:10px">
+                  يوفّر “ساند للسكن” قائمة مُحدّثة بأرقام ملاك الشقق والغرف في المحافظة،
+                  لتسهيل تواصل المتدربين مع المالكين مباشرةً بدون وسطاء. تأكّد من مطابقة التفاصيل قبل الاتفاق.
+                </p>
+                <div style="text-align:center">
+                 <button class="btn btn-outline" id="openHousingBtn" type="button">🏨 الدخول إلى ساند السكن</button>
+                </div>
+                </div>
+          </form>
       </div>
-    </div>
+    </section>
 
-
-
-    <!-- Tabs -->
-    <div class="tabs" id="tabsContainer">
+    <!-- تبويبات التطبيق -->
+    <nav class="tabs" id="tabsContainer" role="tablist" aria-label="التنقل في ساند">
       <button class="tab active" data-tab="home" type="button">🏠 الرئيسية</button>
-      <button class="tab badged" data-tab="requests" id="requestsTab" type="button">
-  📋 طلباتي <span class="badge" id="requestsBadge" style="display:none">0</span>
-</button>
+      <button class="tab badged" data-tab="requests" id="requestsTab" type="button">📋 طلباتي <span class="badge" id="requestsBadge" style="display:none">0</span></button>
       <button class="tab" data-tab="drivers" type="button">🚗 السائقين</button>
       <button class="tab" data-tab="book" type="button">➕ حجز جديد</button>
       <button class="tab" data-tab="rate" type="button">⭐ تقييم</button>
       <button class="tab" data-tab="register" type="button">👥 تسجيل جديد</button>
-    </div>
+    </nav>
 
-    <!-- Home -->
-    <div class="content active" id="homeContent">
-      <h2>مرحباً <span id="homeUserName">...</span> 👋</h2>
-      <div class="dashboard-stats">
-        <div class="stat-card"><div class="stat-number" id="myTripsCount">-</div><div class="stat-label">رحلاتي المكتملة</div></div>
-        <div class="stat-card"><div class="stat-number" id="myRating">-</div><div class="stat-label">تقييمي</div></div>
-        <div class="stat-card"><div class="stat-number" id="myActiveRequests">-</div><div class="stat-label">طلبات نشطة</div></div>
-        <div class="stat-card"><div class="stat-number" id="communitySize">-</div><div class="stat-label">أعضاء المجتمع</div></div>
+    <!-- صفحات المحتوى -->
+
+    <!-- الرئيسية -->
+      <section class="content active" id="homeContent">
+        <h2>مرحباً <span id="homeUserName">...</span> 👋</h2>
+
+        <div class="welcome-banner" id="welcomeBanner">
+          مرحباً بك في مبادرة ساند - نحن هنا لخدمتك 🌟
+        </div>
+
+        <div class="section-divider"><span>ساند المواصلات</span></div>
+        <p class="section-lead" style="margin-bottom:12px">
+          ساند المواصلات مبادرة تطوعية لربط المتدربين بالسائقين المتطوعين داخل المحافظة،
+          وتنسيق الرحلات اليومية بشكل آمن وسريع وبأقل مجهود.
+        </p>
+
+        <div class="dashboard-stats">
+          <div class="stat-card"><div class="stat-number" id="myTripsCount">-</div><div class="stat-label">رحلاتي المكتملة</div></div>
+          <div class="stat-card"><div class="stat-number" id="myRating">-</div><div class="stat-label">تقييمي</div></div>
+          <div class="stat-card"><div class="stat-number" id="myActiveRequests">-</div><div class="stat-label">طلبات نشطة</div></div>
+          <div class="stat-card"><div class="stat-number" id="communitySize">-</div><div class="stat-label">أعضاء المجتمع</div></div>
+        </div>
+        <div style="text-align:center; margin-top:16px;">
+        <button class="btn btn-secondary" id="refreshHomeStats" type="button">
+          🔄 تحديث الإحصائيات
+        </button>
       </div>
-    </div>
+      </section>
 
-    <!-- Requests -->
-    <div class="content" id="requestsContent">
+
+    <!-- طلباتي -->
+    <section class="content" id="requestsContent">
       <h2 id="requestsTitle">طلباتي</h2><br>
       <button class="btn" id="refreshRequestsBtn" type="button">🔄 تحديث الطلبات</button>
       <br><br>
-      <div id="userRequestsList"><div class="loading"><div class="spinner"></div><p>جاري تحميل الطلبات...</p></div></div>
-    </div>
+      <div id="userRequestsList">
+        <div class="loading"><div class="spinner"></div><p>جاري تحميل الطلبات...</p></div>
+      </div>
+    </section>
 
-    <!-- Drivers -->
-    <div class="content" id="driversContent">
+    <!-- السائقون -->
+    <section class="content" id="driversContent">
       <h2>السائقين المتاحين <span id="availableDriversCount" style="font-size:.9rem;opacity:.85"></span></h2>
-          <div class="form-group">
-      <label for="searchDriver">بحث بالاسم أو رقم المتدرب</label>
-      <input id="searchDriver" class="form-control" type="text" placeholder="مثال: أحمد أو D001">
-    </div>
+
+      <div class="form-group">
+        <label for="searchDriver">بحث بالاسم أو رقم المتدرب</label>
+        <input id="searchDriver" class="form-control" type="text" placeholder="مثال: أحمد أو D001">
+      </div>
 
       <div class="form-group">
         <label for="filterNeighborhood">فلترة حسب الحي</label>
@@ -229,24 +1056,30 @@
           <option value="السبخة">السبخة</option>
         </select>
       </div>
+
       <button class="btn" id="refreshDriversBtn" type="button">🔄 تحديث قائمة السائقين</button>
       <br><br>
-      <div id="driversList"><div class="loading"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div></div>
-    </div>
+      <div id="driversList">
+        <div class="loading"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>
+      </div>
+    </section>
 
-    <!-- Booking -->
-    <div class="content" id="bookContent">
+    <!-- حجز جديد -->
+    <section class="content" id="bookContent">
       <h2>حجز توصيل جديد</h2><br>
       <div class="alert alert-info"><strong>تعليمات:</strong> بعد اختيار السائق والأيام المطلوبة، سيتم إرسال رسالة واتساب تلقائية للسائق وحفظ الطلب.</div>
+
       <form id="bookingForm">
         <div class="form-group">
           <label for="selectedDriver">السائق المختار</label>
           <select id="selectedDriver" class="form-control" required><option value="">اختر السائق</option></select>
         </div>
+
         <div class="form-group">
           <label>الأيام المطلوبة</label>
           <div class="checkbox-group" id="daysGroup"></div>
         </div>
+
         <div class="form-group">
           <label for="duration">مدة الحجز (بالأسابيع)</label>
           <select id="duration" class="form-control" required>
@@ -257,22 +1090,25 @@
             <option value="4">شهر كامل</option>
           </select>
         </div>
+
         <div class="form-group">
           <label for="tripNotes">ملاحظات إضافية (اختياري)</label>
           <textarea id="tripNotes" class="form-control" rows="3" placeholder="مثال: أحتاج التوصيل صباحاً 7:30"></textarea>
         </div>
+
         <button type="submit" class="btn" id="bookingBtn">إرسال طلب التوصيل</button>
       </form>
-    </div>
+    </section>
 
-    <!-- Rating -->
-    <div class="content" id="rateContent">
+    <!-- التقييم -->
+    <section class="content" id="rateContent">
       <h2 id="rateTitle">تقييم السائق</h2><br>
       <form id="ratingForm">
         <div class="form-group">
           <label for="ratedDriver" id="rateSelectLabel">السائق</label>
           <select id="ratedDriver" class="form-control" required><option value="">اختر</option></select>
         </div>
+
         <div class="form-group">
           <label for="ratingStars">التقييم</label>
           <select id="ratingStars" class="form-control" required>
@@ -284,27 +1120,31 @@
             <option value="1">⭐ يحتاج تحسين</option>
           </select>
         </div>
+
         <div class="form-group">
           <label for="ratingNotes">ملاحظات إضافية</label>
           <textarea id="ratingNotes" class="form-control" rows="4" placeholder="اكتب ملاحظاتك هنا..."></textarea>
         </div>
+
         <button type="submit" class="btn" id="ratingBtn">إرسال التقييم</button>
       </form>
-    </div>
+    </section>
 
-    <!-- Register -->
-    <div class="content" id="registerContent">
+    <!-- التسجيل -->
+    <section class="content" id="registerContent">
       <h2>تسجيل مستخدم جديد</h2><br>
       <div class="alert alert-info"><strong>ملاحظة:</strong> يمكن للمتدربين تسجيل أنفسهم كسائقين متطوعين أو كمحتاجين للتوصيل.</div>
-      <div id="backToLoginWrap" class="back-to-selection" style="display:none; margin-bottom:10px">
-      <button type="button" class="btn btn-secondary" id="backToLoginBtn">⬅️ رجوع لشاشة الدخول</button>
-    </div>
+
+      <div id="backToLoginWrap" class="back-to-selection" style="display:none;margin-bottom:10px">
+        <button type="button" class="btn btn-secondary" id="backToLoginBtn">⬅️ رجوع لشاشة الدخول</button>
+      </div>
+
       <form id="registrationForm">
         <div class="form-group"><label for="name">الاسم الكامل</label><input type="text" id="name" class="form-control" required></div>
         <div class="form-group"><label for="traineeId">رقم المتدرب</label><input type="text" id="traineeId" class="form-control" required></div>
-        <small id="regIdHint" class="field-hint neutral">
-        </small>
+        <small id="regIdHint" class="field-hint neutral"></small>
         <div class="form-group"><label for="phone">رقم الجوال (مع كود الدولة)</label><input type="tel" id="phone" class="form-control" placeholder="9665XXXXXXXX" required></div>
+
         <div class="form-group">
           <label for="neighborhood">الحي</label>
           <select id="neighborhood" class="form-control" required>
@@ -316,6 +1156,7 @@
             <option value="السبخة">السبخة</option>
           </select>
         </div>
+
         <div class="form-group">
           <label for="userType">نوع المستخدم</label>
           <select id="userType" class="form-control" required>
@@ -324,1500 +1165,1094 @@
             <option value="متدرب">محتاج لتوصيل</option>
           </select>
         </div>
+
         <button type="submit" class="btn" id="registerBtn">تسجيل في ساند</button>
       </form>
+    </section>
+  </div><!-- /container -->
+
+
+
+    <!-- شارة حالة النظام -->
+    <div class="status-badge" id="statusBadge">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">جاري التحميل...</span>
     </div>
+
+  <!-- زر دعم عائم + توست -->
+  <div class="support-fab" id="supportFab" aria-label="الدعم الفني">
+      <!-- تلميح ترحيبي جديد -->
+      <div class="welcome-support-tooltip" id="welcomeSupportTip">
+        <div class="tooltip-arrow"></div>
+        <div class="tooltip-content">
+          <div class="tooltip-icon">💬</div>
+          <div class="tooltip-text">
+            <strong>محتاج مساعدة؟</strong>
+            <span>تواصل معنا مباشرة</span>
+          </div>
+        </div>
+      </div>
+    <div class="support-menu" aria-hidden="true">
+      <a class="wa" target="_blank" rel="noopener" href="https://wa.me/9665XXXXXXXX?text=%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D8%AF%D8%B9%D9%85%20%D9%81%D9%86%D9%8A">
+        <span class="ico">💬</span><span>واتساب</span>
+      </a>
+      <a class="mail" href="mailto:someone@example.com?subject=%D8%AF%D8%B9%D9%85%20%D9%81%D9%86%D9%8A">
+        <span class="ico">✉️</span><span>البريد</span>
+      </a>
+    </div>
+    <button class="main" type="button" title="الدعم">🛟</button>
   </div>
 
-  <!-- شريط حالة الاتصال -->
-  <div class="connbar" id="connBar" aria-live="polite">
-    <span class="conn-dot conn-connecting" id="connDot"></span>
-    <span class="conn-text" id="connText">يتحقق من الاتصال بـ Google Sheets…</span>
-  </div>
+  <div id="toastWrap" role="region" aria-live="polite" aria-atomic="true" style="position:fixed;inset-inline-start:20px;bottom:90px;z-index:10050;display:flex;flex-direction:column;gap:10px"></div>
 
+      <!-- شريط الإحصائيات الثابت -->
+    <div class="stats-bottom-bar" id="statsBottomBar" aria-live="polite">
+      <div class="stat-glass-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalUsersBottom">-</div>
+          <div class="stat-label">مستخدم نشط</div>
+        </div>
+      </div>
+      
+      <div class="stat-glass-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalTripsBottom">-</div>
+          <div class="stat-label">رحلة مكتملة</div>
+        </div>
+      </div>
+      
+      <div class="stat-glass-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+          <div class="stat-number" id="satisfactionBottom">-</div>
+          <div class="stat-label">تقييم الخدمة</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <span class="footer-icon">🏛️</span>
+          <div class="footer-text">
+            <strong>مبادرة من</strong>
+            <span>وحدة الخدمات الإرشادية وتطوير وكالة ضبط الجودة</span>
+          </div>
+        </div>
+        <div class="footer-institute">
+          <span class="institute-badge">الكلية التقنية بحقل</span>
+          <span class="version">النسخة 1.0</span>
+        </div>
+      </div>
+    </footer>
+
+  <!-- سكربت التطبيق -->
   <script>
-    // إعدادات عامة - ضع رابط Google Apps Script الخاص بك هنا
-    let GOOGLE_SCRIPT_URL = '';   // سيتم ملؤه من config.json
+    
+    // ===== إعدادات عامة (من config.json) =====
+    let GOOGLE_SCRIPT_URL = ''; // سيتم ملؤه من config.json
     let API_KEY = '';
     let CFG = null;
+
+    // حالة عامة
     let requestsAutoTimer = null;
-
-    let allowSelfRegister = false; // يُسمح بالتسجيل بعد إثبات وجود الرقم في ROSTER
-    let lastVerifiedTrainee = null; // نحتفظ بآخر رقم تم التحقق منه لإمرارِه لنموذج التسجيل
-    let lastQuickDriverId = null; // يحتفظ بآخر سائق تم اختياره عبر "حجز سريع"
-
-
+    let allowSelfRegister = false;
+    let lastVerifiedTrainee = null;
+    let lastQuickDriverId = null;
 
     let DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس']; // افتراضي
 
-    // حالة التطبيق
     let drivers = [];
     let currentUser = null;
     let approvedPartners = [];
 
-
-    // === [جديد] حالة التطبيق ===
     // القيم: 'login' | 'register_only' | 'app'
     let appMode = 'login';
-
     function isValidUserType(t){ return t === 'سائق' || t === 'متدرب'; }
 
-
-    // دالة موحّدة لضبط الواجهة حسب الحالة
     function setAppMode(mode){
       appMode = mode;
 
-      const tabs = document.getElementById('tabsContainer');
-      const topUserInfo = document.getElementById('topUserInfo');
-      const loginSection = document.getElementById('loginSection');
-      const allContents = Array.from(document.querySelectorAll('.content'));
-      const reg = document.getElementById('registerContent');
-      const backWrap = document.getElementById('backToLoginWrap');
+      // ضيف/احذف كلاسات الحالة على <body> لاستخدامها في CSS
+      document.body.classList.remove('mode-login','mode-register','mode-app');
+      if(mode === 'login')         document.body.classList.add('mode-login');
+      if(mode === 'register_only') document.body.classList.add('mode-register');
+      if(mode === 'app')           document.body.classList.add('mode-app');
 
-      // أداة مساعدة لتفعيل/تعطيل أجزاء الواجهة
-      function hideAllContents(){
-        allContents.forEach(c => {
+      const logoutBtn    = document.getElementById('logoutBtn');
+      const tabs         = document.getElementById('tabsContainer');
+      const topUserInfo  = document.getElementById('topUserInfo');
+      const loginSection = document.getElementById('loginSection');
+      const allContents  = Array.from(document.querySelectorAll('.content'));
+      const reg          = document.getElementById('registerContent');
+      const backWrap     = document.getElementById('backToLoginWrap');
+      const regTab       = document.querySelector('.tab[data-tab="register"]');
+      if(regTab) regTab.style.display = 'none';
+
+      const hideAllContents = ()=>{
+        allContents.forEach(c=>{
           c.classList.remove('active');
           c.setAttribute('hidden','');
           c.setAttribute('aria-hidden','true');
           c.setAttribute('inert','');
         });
-      }
-      function showOnly(el){
+      };
+      const showOnly = (el)=>{
         el.classList.add('active');
         el.removeAttribute('hidden');
         el.setAttribute('aria-hidden','false');
         el.removeAttribute('inert');
-      }
+      };
 
-      if(mode === 'login'){
-        loginSection.style.display = 'block';
-        if(tabs) tabs.classList.remove('active');
-        if(topUserInfo) topUserInfo.style.display = 'none';
+      if(mode==='login'){
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        loginSection.style.display='block';
+        tabs.classList.remove('active');
+        topUserInfo.style.display='none';
         hideAllContents();
-        showOnly(document.getElementById('homeContent'));
-        // إخفاء تبويب التسجيل في وضع الدخول
         document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
-        if(backWrap) backWrap.style.display = 'none';
+        backWrap.style.display='none';
       }
 
-      if(mode === 'register_only'){
-        loginSection.style.display = 'none';
-        if(tabs) tabs.classList.remove('active');  // لا تبويبات
-        if(topUserInfo) topUserInfo.style.display = 'none';
-        hideAllContents();
+      if(mode==='register_only'){
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        loginSection.style.display='none';
+        tabs.classList.remove('active');
+        topUserInfo.style.display='none';
+        hideAllContents(); 
         showOnly(reg);
-        // لا نعرض زر التسجيل في التبويبات أصلاً
         document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
-        if(backWrap) backWrap.style.display = 'block'; // إظهار زر "رجوع للدخول"
+        backWrap.style.display='block';
       }
 
-      if(mode === 'app'){
-        loginSection.style.display = 'none';
-        if(tabs) tabs.classList.add('active');
-        if(topUserInfo) topUserInfo.style.display = 'flex';
-        allContents.forEach(c => { 
+      if(mode==='app'){
+        if (logoutBtn) logoutBtn.style.display = 'inline-block'; // أو 'flex'
+        loginSection.style.display='none';
+        // إخفاء رسالة الترحيب بعد 5 ثوانٍ
+        setTimeout(() => {
+          const banner = document.getElementById('welcomeBanner');
+          if(banner) banner.style.display = 'none';
+        }, 5000);
+        tabs.classList.add('active');
+        hideAllContents(); 
+        showOnly(document.getElementById('homeContent'));
+        setIsHome(true); // الصفحة الرئيسية مفعّلة الآن
+        topUserInfo.style.display='inline-flex'; // الاسم + الشارة جنب بعض
+        allContents.forEach(c=>{
           c.removeAttribute('hidden'); 
-          c.removeAttribute('inert'); 
-          c.setAttribute('aria-hidden', c.classList.contains('active') ? 'false' : 'true'); 
+          c.removeAttribute('inert');
+          c.setAttribute('aria-hidden', c.classList.contains('active') ? 'false' : 'true');
         });
-        // إخفِ تبويب التسجيل بعد الدخول
         document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
-        if(backWrap) backWrap.style.display = 'none';
+        backWrap.style.display='none';
       }
     }
 
-    // حارس عام للتنقل (يمنع أي محاولة فتح تبويب خارج وضع app)
     function guardNavigation(ev){
-      if(appMode !== 'app'){
+      if(appMode!=='app'){
         ev.preventDefault();
-        showToast('أكمل التسجيل أولاً.', 'warn');
+        showToast('أكمل التسجيل أولاً.','warn');
         return true;
       }
       return false;
     }
 
-
-    // أدوات مساعدة
-    const $ = sel => document.querySelector(sel);
-    const $$ = sel => Array.from(document.querySelectorAll(sel));
-    
-    // مفاتيح كاش ثابتة تعتمد على action + data
-    function stableStringify(obj){
-      if (obj === null || typeof obj !== 'object') return String(obj);
-      if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
-      const keys = Object.keys(obj).sort();
-      return '{' + keys.map(k => JSON.stringify(k) + ':' + stableStringify(obj[k])).join(',') + '}';
-    }
-    function buildCacheKey(action, data){
-      return String(action || '') + ':' + stableStringify(data || {});
-    }
-
-
+    // ===== Utils =====
     function sanitizeStr(s){ return String(s||'').replace(/[\u200E\u200F\u202A-\u202E]/g,'').trim(); }
     function normalizeDigits(s=''){
-      const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9',
-                '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
+      const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
       return String(s).replace(/[٠-٩۰-۹]/g, ch => map[ch] || ch);
     }
-
-
-    async function loadConfig() {
-      const url = './config.json?ts=' + Date.now(); // لتفادي الكاش
-      const resp = await fetch(url, { cache: 'no-store' });
-
-      if (!resp.ok) {
-        throw new Error('[CONFIG] الملف غير موجود أو المسار خطأ (' + resp.status + ')');
-      }
-
-      const txt = await resp.text();
-
-      // لو رجع HTML بدل JSON
-      if (txt.trim().startsWith('<')) {
-        throw new Error('[CONFIG] رجع HTML بدل JSON — الملف مفقود أو المسار خطأ');
-      }
-
-      let json;
-      try {
-        json = JSON.parse(txt);
-      } catch (e) {
-        throw new Error('[CONFIG] صياغة JSON غير صحيحة');
-      }
-
-      // خزّن القيم
-      CFG = json;
-      GOOGLE_SCRIPT_URL = CFG.GOOGLE_SCRIPT_URL || '';
-      API_KEY = CFG.API_KEY || '';
-
-      console.log('CONFIG loaded:', CFG);
-      if (CFG.includeWeekend) DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-
+    function normalizePhoneKSA(raw=''){
+      const s = normalizeDigits(String(raw)).replace(/\s+/g,'').replace(/[^\d+]/g,'');
+      if(!s) return '';
+      if(/^(\+)?9665\d{8}$/.test(s)) return s.replace(/^\+/, '');
+      if(/^05\d{8}$/.test(s))        return '966' + s.slice(1);
+      if(/^5\d{8}$/.test(s))         return '966' + s;
+      if(/^009665\d{8}$/.test(s))    return s.replace(/^00/, '');
+      return '';
     }
-
-
-    function isValidPhoneKSA(v){ return /^9665\d{8}$/.test((v||'').trim()); }
-    function showError(msg){
-      const existing = $('.alert-error');
-      if(existing) existing.remove();
-      const alert = document.createElement('div');
-      alert.className = 'alert alert-error';
-      alert.textContent = msg;
-      $('.login-form').insertBefore(alert, $('.login-form').firstChild);
-      setTimeout(() => alert.remove(), 5000);
+    function isValidPhoneKSA(v){ return /^9665\d{8}$/.test(normalizePhoneKSA(v)); }
+    function buildWaUrl(phone, text=''){
+      const p = normalizePhoneKSA(phone);
+      if(!p) return '';
+      const q = text ? ('?text=' + encodeURIComponent(text)) : '';
+      return `https://wa.me/${p}${q}`;
     }
-
-        function showToast(msg, type='info', timeout=3500){
-      const wrap = document.getElementById('toastWrap');
-      if(!wrap) return;
+    function getWaPhoneFromRecord(rec={}){
+      const candidates = [rec.phone,rec.whatsapp,rec.mobile,rec.passengerPhone,rec.driverPhone].filter(Boolean);
+      for(const c of candidates){
+        const n = normalizePhoneKSA(c);
+        if(n) return n;
+      }
+      return '';
+    }
+    function showToast(msg,type='info',timeout=3500){
+      const wrap = document.getElementById('toastWrap'); if(!wrap) return;
       const d = document.createElement('div');
       const palette = {
-        info:   {bg:'#cce7ff', bd:'#99d6ff', tx:'#0c5460'},
-        success:{bg:'#d4edda', bd:'#c3e6cb', tx:'#155724'},
-        warn:   {bg:'#fff3cd', bd:'#ffeaa7', tx:'#856404'},
-        error:  {bg:'#f8d7da', bd:'#f5c2c7', tx:'#721c24'}
-      }[type] || {bg:'#cce7ff', bd:'#99d6ff', tx:'#0c5460'};
-      d.style.cssText = `
-        padding:12px 14px;border-radius:10px;border:1px solid ${palette.bd};
-        background:${palette.bg};color:${palette.tx};min-width:220px;
-        box-shadow:0 10px 20px rgba(0,0,0,.08);font-weight:700
-      `;
+        info:{bg:'#cce7ff',bd:'#99d6ff',tx:'#0c5460'},
+        success:{bg:'#d4edda',bd:'#c3e6cb',tx:'#155724'},
+        warn:{bg:'#fff3cd',bd:'#ffeaa7',tx:'#856404'},
+        error:{bg:'#f8d7da',bd:'#f5c2c7',tx:'#721c24'}
+      }[type] || {bg:'#cce7ff',bd:'#99d6ff',tx:'#0c5460'};
+      d.style.cssText = `padding:12px 14px;border-radius:10px;border:1px solid ${palette.bd};background:${palette.bg};color:${palette.tx};min-width:220px;box-shadow:0 10px 20px rgba(0,0,0,.08);font-weight:700`;
       d.textContent = msg;
       wrap.appendChild(d);
       setTimeout(()=>{ d.style.opacity='0'; d.style.transform='translateY(6px)'; }, timeout);
       setTimeout(()=>{ d.remove(); }, timeout+300);
     }
 
-
-    // حالة الاتصال
+    // ===== حالة الاتصال =====
     const connDot = () => document.getElementById('connDot');
     const connText = () => document.getElementById('connText');
-
     function setConnStatus(state){
-      const dot = connDot(); 
-      const txt = connText();
-      if(!dot || !txt) return;
-      dot.classList.remove('conn-online','conn-connecting','conn-offline');
-      if(state==='online'){ 
-        dot.classList.add('conn-online'); 
-        txt.textContent='متصل بـ Google Sheets'; 
-      } else if(state==='connecting'){ 
-        dot.classList.add('conn-connecting'); 
-        txt.textContent='يتحقق من الاتصال بـ Google Sheets…'; 
-      } else { 
-        dot.classList.add('conn-offline'); 
-        txt.textContent='الاتصال بـ Google Sheets منقطع'; 
+      const badge = document.getElementById('statusBadge');
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      
+      if(!badge || !dot || !txt) return;
+      
+      dot.classList.remove('online','offline','loading');
+      
+      if(state === 'online'){
+        dot.classList.add('online');
+        txt.textContent = 'النظام جاهز';
+        setTimeout(() => badge.classList.add('hidden'), 2000);
+      } else if(state === 'offline'){
+        dot.classList.add('offline');
+        txt.textContent = 'خطأ في الاتصال';
+        badge.classList.remove('hidden');
+      } else {
+        dot.classList.add('loading');
+        txt.textContent = 'جاري التحميل...';
+        badge.classList.remove('hidden');
       }
     }
 
-    // --- كاش بسيط في الذاكرة + localStorage ---
-    const CACHE_TTL = {
-      getTopStats:          60_000, // 1 دقيقة
-      getDrivers:           60_000,
-      getUserStats:         45_000,
-      getPassengerRequests: 30_000,
-      getDriverRequests:    30_000
-    };
+    // ===== تخزين مؤقت =====
+    const CACHE_TTL = { getTopStats:60000, getDrivers:60000, getUserStats:45000, getPassengerRequests:30000, getDriverRequests:30000 };
+    const memCache = new Map();      // actionKey -> {ts,data}
+    const inflight = new Map();      // actionKey -> Promise
 
-    const memCache = new Map();      // action -> {ts,data}
-    const inflight = new Map();      // action -> Promise
-
-    function lcGet(key){
-      try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch{ return null;}
+    function stableStringify(obj){
+      if (obj === null || typeof obj !== 'object') return String(obj);
+      if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
+      const keys = Object.keys(obj).sort();
+      return '{' + keys.map(k => JSON.stringify(k) + ':' + stableStringify(obj[k])).join(',') + '}';
     }
-    function lcSet(key, val){
-      try{ localStorage.setItem(key, JSON.stringify(val)); }catch{}
-    }
+    function buildCacheKey(action,data){ return String(action||'') + ':' + stableStringify(data||{}); }
+    function lcGet(key){ try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch{return null} }
+    function lcSet(key,val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch{} }
+    function isFresh(ts,ttl){ return (Date.now()-ts) < ttl; }
 
-    function isFresh(ts, ttl){ return (Date.now() - ts) < ttl; }
+    async function fetchWithCache(action, data={}, {ttl=30000, staleOK=true} = {}){
+      const cacheKey = buildCacheKey(action,data);
+      const lsKey = 'sand_cache_' + cacheKey;
 
-    async function fetchWithCache(action, data = {}, { ttl = 30_000, staleOK = true } = {}){
-      const cacheKey = buildCacheKey(action, data);
-      const memKey   = cacheKey;                // نفس المفتاح للذاكرة
-      const lsKey    = 'sand_cache_' + cacheKey;
+      const m = memCache.get(cacheKey);
+      if(m && isFresh(m.ts, ttl)) return {from:'mem', data:m.data};
 
-      // 1) ذاكرة فورية
-      const m = memCache.get(memKey);
-      if (m && isFresh(m.ts, ttl)) return { from: 'mem', data: m.data };
-
-      // 2) localStorage (عرض فوري لو staleOK)
       const lc = lcGet(lsKey);
-      if (lc && staleOK) {
-        // حدّث في الخلفية لكن ارجع فورًا بالكاش
-        backgroundRefresh(action, data, ttl);
-        return { from: 'local', data: lc.data, stale: !isFresh(lc.ts, ttl) };
+      if(lc && staleOK){
+        backgroundRefresh(action,data,ttl);
+        return {from:'local', data:lc.data, stale:!isFresh(lc.ts,ttl)};
       }
 
-      // 3) لا تكرّر نفس الطلب لو جارٍ
-      if (inflight.has(memKey)) return inflight.get(memKey);
+      if(inflight.has(cacheKey)) return inflight.get(cacheKey);
 
-      // 4) طلب جديد
-      const p = (async () => {
-        const res = await sendToGoogleSheets(action, data);
+      const p = (async ()=>{
+        const res = await sendToGoogleSheets(action,data);
         const payload = res?.data ?? null;
-        const entry = { ts: Date.now(), data: payload };
-        memCache.set(memKey, entry);
+        const entry = {ts:Date.now(), data:payload};
+        memCache.set(cacheKey, entry);
         lcSet(lsKey, entry);
-        return { from: 'net', data: payload };
-      })().finally(() => inflight.delete(memKey));
+        return {from:'net', data:payload};
+      })().finally(()=> inflight.delete(cacheKey));
 
-      inflight.set(memKey, p);
+      inflight.set(cacheKey,p);
       return p;
     }
 
-
-    function backgroundRefresh(action, data, ttl){
-      // تحديث هادئ: لا يغير الواجهة إلا بعد وصول نتيجة جديدة
-      fetchWithCache(action, data, { ttl, staleOK:false }).catch(()=>{});
+    function backgroundRefresh(action,data,ttl){
+      fetchWithCache(action,data,{ttl,staleOK:false}).catch(()=>{});
     }
 
-
-    async function sendToGoogleSheets(action, data){
+    async function sendToGoogleSheets(action,data){
       let connectingTimer = setTimeout(()=> setConnStatus('connecting'), 600);
-
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 20_000);
+      const t = setTimeout(()=> controller.abort(), 20000);
 
       try{
-        if (!GOOGLE_SCRIPT_URL) { clearTimeout(connectingTimer); setConnStatus('offline'); throw new Error('GOOGLE_SCRIPT_URL is empty'); }
+        if(!GOOGLE_SCRIPT_URL){ clearTimeout(connectingTimer); setConnStatus('offline'); throw new Error('GOOGLE_SCRIPT_URL is empty'); }
 
-        const resp = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action, data, ...(API_KEY? {key:API_KEY}:{}) }),
-          signal: controller.signal,
-          mode: 'cors',
-          credentials: 'omit',
-          cache: 'no-store',
-          redirect: 'follow',
-          referrerPolicy: 'no-referrer'
+        const resp = await fetch(GOOGLE_SCRIPT_URL,{
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify({action,data, ...(API_KEY? {key:API_KEY}:{}) }),
+          signal:controller.signal,
+          mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer'
         });
 
-        clearTimeout(connectingTimer);
-        clearTimeout(t);
-        if (!resp.ok) { setConnStatus('offline'); throw new Error('HTTP ' + resp.status); }
+        clearTimeout(connectingTimer); clearTimeout(t);
+        if(!resp.ok){ setConnStatus('offline'); throw new Error('HTTP ' + resp.status); }
         const json = await resp.json().catch(()=>{ throw new Error('INVALID_JSON'); });
 
         setConnStatus('online');
         return json;
-      } catch (err) {
-        clearTimeout(connectingTimer);
-        clearTimeout(t);
+      }catch(err){
+        clearTimeout(connectingTimer); clearTimeout(t);
         setConnStatus('offline');
         console.error('[GS Error]', err);
-        throw new Error(
-          err.name === 'AbortError' ? 'TIMEOUT_20S' :
-          err.message === 'INVALID_JSON' ? 'INVALID_JSON' : ('NET_' + (err.message||'ERR'))
-        );
+        throw new Error( err.name==='AbortError' ? 'TIMEOUT_20S' : (err.message==='INVALID_JSON' ? 'INVALID_JSON' : ('NET_'+(err.message||'ERR'))) );
       }
     }
 
-    // نبضات اتصال
     async function heartbeat(){
       try{
-        const r = await fetchWithCache('getTopStats', {}, { ttl: CACHE_TTL.getTopStats });
+        const r = await fetchWithCache('getTopStats', {}, {ttl:CACHE_TTL.getTopStats});
         updateTopStats(r?.data);
       }catch{}
     }
 
+    // ===== عناصر مساعدة سريعة =====
+    function $(sel){ return document.querySelector(sel); }
+    function $$(sel){ return Array.from(document.querySelectorAll(sel)); }
 
-    // بدء التطبيق
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        await loadConfig();        // ← تحميل الكونفِج
-        resolveConfigKeys();       // ← حلّ المفاتيح البديلة
-
-        if (!GOOGLE_SCRIPT_URL) {  // حارس مفيد
-          setConnStatus('offline');
-          throw new Error('GOOGLE_SCRIPT_URL مفقود — حدّث config.json');
-        }
-
-        await heartbeat();         // ← أول نبضة اتصال
-        // تحميل صامت للبيانات الأساسية
-        fetchWithCache('getTopStats', {}, { ttl: CACHE_TTL.getTopStats });
-        fetchWithCache('getDrivers',   {}, { ttl: CACHE_TTL.getDrivers });
-        // لو فيه مستخدم معروف، جهّز بياناته
-        if (currentUser) {
-          const role = currentUser.userType === 'سائق' ? 'getDriverRequests' : 'getPassengerRequests';
-          fetchWithCache(role, { 
-            driverTraineeId: currentUser.traineeId,
-            passengerTraineeId: currentUser.traineeId
-          }, { ttl: CACHE_TTL[role] || 30_000 });
-          fetchWithCache('getUserStats', { traineeId: currentUser.traineeId, userType: currentUser.userType }, { ttl: CACHE_TTL.getUserStats });
-        }
-
-        await updateUserStats();   // ← عبّي "أعضاء المجتمع" حتى قبل الدخول
-        setInterval(heartbeat, 30000);
-
-        initializeApp();
-              // تفعيل الوضع الداكن المحفوظ إن وجد
-      if(localStorage.getItem('sand_theme') === 'dark'){
-        document.documentElement.classList.add('dark');
-        const tBtn = document.getElementById('themeToggleBtn');
-        if(tBtn) tBtn.textContent = 'وضع نهاري';
-      }
-      // زر التبديل
-      document.getElementById('themeToggleBtn')?.addEventListener('click', ()=>{
-        const html = document.documentElement;
-        const on = html.classList.toggle('dark');
-        localStorage.setItem('sand_theme', on ? 'dark' : 'light');
-        document.getElementById('themeToggleBtn').textContent = on ? 'وضع نهاري' : 'الوضع الداكن';
-      });
-
-        document.getElementById('loginTraineeId')?.focus();
-      } catch (e) {
-        console.error(e);
-        alert('تعذر تحميل config.json: ' + e.message);
-        setConnStatus('offline');
-      }
-    });
-
-
-        function resolveConfigKeys() {
-      // اجلب القيم من CFG بأي اسم متاح
-      const apiKey   = CFG.API_KEY || CFG.defaultApiKey || CFG.apiKey || '';
-      const sheetId  = CFG.sheetId || CFG.defaultSheetId || '';
-      const apiBase  = CFG.apiBase || '';
-
-      // لو عندك أكواد ثانية تعتمد على هذه، خزّنها في نافذة عامة
-      window.SAND_CFG = { apiKey, sheetId, apiBase };
-
-      console.log('%c[Diag]', 'color:#7047eb;font-weight:bold',
-        'Resolved keys', { apiKey: apiKey ? '(set)' : 'undefined', sheetId, apiBase }
-      );
-    }
-
+    // ===== تلميحات رقم المتدرب =====
     function hintTraineeIdState(value){
       const v = String(value||'').trim();
-      if(!v){
-        return {cls:'neutral', msg:'تنبيه ودّي: عادةً يبدأ رقم المتدرب بـ 4451 أو 4461'};
-      }
-      if(/^(4451|4461)\d*$/.test(v)){
-        return {cls:'good', msg:'✅ الشكل يبدو مناسباً (يبدأ بـ 4451 أو 4461)'};
-      }
-      return {cls:'warn', msg:'⚠️ تنويه: الرقم التدريبي عادةً يبدأ بـ 4451 أو 4461'};
+      if(!v){ return {cls:'neutral', msg:''}; }
+      if(/^\d{6,}$/.test(v)){ return {cls:'good', msg:'✅ الصيغة رقمية تبدو صحيحة'}; }
+      return {cls:'warn', msg:'⚠️ يرجى إدخال أرقام فقط'};
     }
+    function setupTraineeIdHints(){
+      const loginInput = document.getElementById('loginTraineeId');
+      const loginHint  = document.getElementById('loginIdHint');
+      const regInput   = document.getElementById('traineeId');
+      const regHint    = document.getElementById('regIdHint');
 
-
-    function initializeApp() {
-      setupLoginForm();
-      setupNavigation();
-      setupForms();
-      setupKeyboardShortcuts();
-      setupTraineeIdHints();
-    }
-    // أخفِ تبويب التسجيل دائمًا افتراضيًا
-    document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
-    document.getElementById('backToLoginBtn')?.addEventListener('click', ()=>{
-      allowSelfRegister = false;
-      lastVerifiedTrainee = null;
-      setAppMode('login');
-      // إعادة الواجهة إلى شاشة الدخول
-      document.getElementById('loginTraineeId')?.focus();
-    });
-
-
-    // استرجاع المستخدم إن كان محفوظاً
-    const saved = localStorage.getItem('sand_currentUser');
-    if (saved) {
-      try {
-        currentUser = JSON.parse(saved);
-        // أعرض الواجهة بعد تحميل الـ DOM
-        document.addEventListener('DOMContentLoaded', () => {
-          const tabRegister = document.querySelector('.tab[data-tab="register"]');
-          if (tabRegister) tabRegister.style.display = 'none';
-          allowSelfRegister = false;
-          lastVerifiedTrainee = null;
-
-          showMainInterface();
+      function bindHint(input, hintEl){
+        if(!input || !hintEl) return;
+        input.addEventListener('input', ()=>{
+          const {cls, msg} = hintTraineeIdState(input.value);
+          hintEl.classList.remove('neutral','good','warn');
+          hintEl.classList.add(cls);
+          hintEl.textContent = msg;
+          hintEl.style.display = msg ? 'inline' : 'none';
         });
-      } catch {}
-    }
-
-    function updateRequestsBadge(n){
-      const badge = document.getElementById('requestsBadge');
-      if(!badge) return;
-      if(n>0){
-        badge.textContent = n>99 ? '99+' : String(n);
-        badge.style.display = 'inline-flex';
-      }else{
-        badge.style.display = 'none';
       }
+      bindHint(loginInput, loginHint);
+      bindHint(regInput, regHint);
     }
 
-    function setupLoginForm() {
-      const loginBtn = $('#loginBtn');
-      if (loginBtn) loginBtn.addEventListener('click', handleLogin);
-    }
+    // ===== تحديث أرقام العنوان =====
+      function updateTopStats(data){
+        try{
+          const u = document.getElementById('totalUsersBottom');
+          const t = document.getElementById('totalTripsBottom');
+          const s = document.getElementById('satisfactionBottom');
 
-    function setupNavigation() {
-      $('#logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('sand_currentUser');
-        drivers = [];
-        approvedPartners = [];
-        currentUser = null;
-        allowSelfRegister = false;
-        lastVerifiedTrainee = null;
+          if(u) u.textContent = data?.totalUsers ?? '-';
+          if(t) t.textContent = data?.totalTrips ?? '-';
 
-        $('#tabsContainer').classList.remove('active');
-        $$('.content').forEach(c => c.classList.remove('active'));
-        $('#homeContent').classList.add('active');
-
-        $('#loginSection').style.display = 'block';
-        $('#loginForm').classList.add('active');
-        $('#loginForm').setAttribute('aria-hidden', 'false');
-
-        $('#loginTraineeId').value = '';
- 
-        $('.tab[data-tab="book"]')?.style && ($('.tab[data-tab="book"]').style.display = 'block');
-        $('#topUserInfo')?.style && ($('#topUserInfo').style.display = 'none');
-        $$('#tabsContainer .tab').forEach((b,i) => b.classList.toggle('active', i===0));
-        document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
-
-        if(requestsAutoTimer) { clearInterval(requestsAutoTimer); requestsAutoTimer = null; }
-          setAppMode('login'); 
-      });
-      
-
-      $$('#tabsContainer .tab').forEach(btn => {
-        btn.addEventListener('click', async (ev) => {     // ✅ خليها async
-          if (guardNavigation(ev)) return;
-
-          const tab = btn.dataset.tab;
-
-          if (currentUser?.userType === 'سائق' && tab === 'drivers') {
-            ev.preventDefault();
-            showToast('قائمة السائقين غير مخصصة لدورك. استخدم "طلبات التوصيل".','info');
-            return;
+          if(s){
+            const v = data?.satisfaction;
+            if (v == null || v === '-') { s.textContent = '-'; }
+            else if (typeof v === 'string' && v.trim().endsWith('%')) { s.textContent = v; }
+            else if (!isNaN(Number(v))) { s.textContent = `${Number(v)}`.replace(/\.0+$/,'') + '%'; }
+            else { s.textContent = String(v); }
           }
-
-          if (tab === 'register' && !allowSelfRegister) {
-            ev.preventDefault();
-            showToast('لا يمكنك فتح صفحة التسجيل مباشرة. تحقّق من رقمك أولًا من شاشة الدخول.','warn');
-            return;
-          }
-
-          $$('#tabsContainer .tab').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          if (tab === 'home') { updateUserStats(); }
-          $$('.content').forEach(c => c.classList.remove('active'));
-          const map = { home:'homeContent', requests:'requestsContent', drivers:'driversContent', book:'bookContent', rate:'rateContent', register:'registerContent' };
-          const targetId = map[tab];
-          if (targetId) document.getElementById(targetId).classList.add('active');
-
-          if (tab === 'drivers') {
-            loadDriversFromSheets().then(()=>{
-              loadFilters();
-              filterDriversByNeighborhood();
-              document.getElementById('searchDriver').dispatchEvent(new Event('input'));
-            });
-          }
-
-          if (tab === 'requests') {
-            loadUserRequests();
-            if (requestsAutoTimer) clearInterval(requestsAutoTimer);
-            requestsAutoTimer = setInterval(()=>{
-              if (document.getElementById('requestsContent').classList.contains('active')) {
-                loadUserRequests();
-              }
-            }, 60000);
-          } else {
-            if (requestsAutoTimer) { clearInterval(requestsAutoTimer); requestsAutoTimer = null; }
-          }
-
-          if (tab === 'book') updateDriverSelects(lastQuickDriverId);
-
-          if (tab === 'rate') {                // ✅ أقواس صحيحة
-            await loadUserRequests();          // يبني approvedPartners من الطلبات المقبولة
-            populateRatingOptions();           // يملأ قائمة "السائق/الراكب" بالتوافقات
-          }
-        });
-      });
-
-
-
-      if($('#requestsContent').classList.contains('active')){
-        loadUserRequests();
-        if(requestsAutoTimer) clearInterval(requestsAutoTimer);
-        requestsAutoTimer = setInterval(()=>{
-          if(document.getElementById('requestsContent').classList.contains('active')){
-            loadUserRequests();
-          }
-        }, 60000);
+        }catch{}
       }
-    }
+      function setIsHome(active){
+        document.body.classList.toggle('is-home', !!active);
+      }
 
 
-    function saveFilters(){
-      const f = {
-        q: document.getElementById('searchDriver')?.value || '',
-        n: document.getElementById('filterNeighborhood')?.value || ''
-      };
-      localStorage.setItem('sand_filters', JSON.stringify(f));
+    // ===== واجهة المستخدم: تبويبات =====
+    function switchTab(name){
+      // منع التنقل إن لم يكمل الدخول
+      if(guardNavigation(new Event('nav'))) return;
+
+      $$('.tab').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
+      $$('.content').forEach(sec=>{
+        const active = (sec.id === (name+'Content'));
+        sec.classList.toggle('active', active);
+        sec.setAttribute('aria-hidden', active ? 'false' : 'true');
+      });
+      // تحديث المحتوى عند فتح تبويب معيّن
+      if(name==='drivers')   loadDrivers();
+      if(name==='requests')  loadRequests();
+      if(name==='home')      loadMyStats();
+      if(name==='book')      prepareBookingUI();
+      if(name==='rate')      prepareRatingUI();
+      setIsHome(name === 'home');
     }
-    function loadFilters(){
+
+    // ===== تحميل الإعدادات من config.json =====
+    async function loadConfig(){
+      const url = 'config.json?ts=' + Date.now(); // تفادي الكاش
       try{
-        const f = JSON.parse(localStorage.getItem('sand_filters') || '{}');
-        if(f.q != null) document.getElementById('searchDriver').value = f.q;
-        if(f.n != null) document.getElementById('filterNeighborhood').value = f.n;
-      }catch{}
+        const res = await fetch(url, { cache:'no-store' });
+        if(!res.ok) throw new Error('config.json not found ('+res.status+')');
+
+        // لو رجع HTML بدل JSON (بعض الاستضافات تعيد index.html)
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        const raw = await res.text();
+        if (ct.includes('text/html') || raw.trim().startsWith('<')) {
+          console.error('[CONFIG] Expected JSON but got HTML. First 200 chars:\n', raw.slice(0,200));
+          throw new Error('config.json returned HTML');
+        }
+
+        // رجّع النص كـ JSON بعد الفحص
+        const cfg = JSON.parse(raw);
+        CFG = cfg;
+
+        // ندعم أسماء مفاتيح متعددة (مرونة لملفات قديمة/جديدة)
+        GOOGLE_SCRIPT_URL = sanitizeStr(
+          cfg?.GOOGLE_SCRIPT_URL || cfg?.SCRIPT_URL || cfg?.scriptUrl || ''
+        );
+        API_KEY = sanitizeStr(
+          cfg?.API_KEY || cfg?.apiKey || cfg?.defaultApiKey || ''
+        );
+        allowSelfRegister = !!cfg?.allowSelfRegister;
+
+        // الأيام: إذا محددة في الملف نستخدمها، وإلا إذا includeWeekend=true نضم الجمعة+السبت
+        if (Array.isArray(cfg?.days) && cfg.days.length) {
+          DAYS = cfg.days.map(String);
+        } else if (cfg?.includeWeekend === true) {
+          DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+        }
+      }catch(e){
+        console.warn('[CONFIG] Using defaults:', e.message);
+        // إبقاء القيم الافتراضية، وترك GOOGLE_SCRIPT_URL فارغًا ليظهر شريط الحالة "غير متصل"
+      }
     }
 
 
-    function setupForms() {
-      $('#registrationForm').addEventListener('submit', handleRegistration);
-      $('#bookingForm').addEventListener('submit', handleBooking);
-      $('#ratingForm').addEventListener('submit', handleRating);
-
-      $('#refreshDriversBtn').addEventListener('click', loadDriversFromSheets);
-      $('#refreshRequestsBtn').addEventListener('click', loadUserRequests);
-
-
-      // فلترة الحي
-      document.getElementById('filterNeighborhood').addEventListener('change', ()=>{
-        filterDriversByNeighborhood();
-        saveFilters();
-      });
-
-          // 🔽 بدّل مستمع البحث القديم بهذا الـ debounce
-          (function(){
-            let t = null;
-            const input = document.getElementById('searchDriver');
-            if(!input) return;
-            input.addEventListener('input', ()=>{
-              if(t) clearTimeout(t);
-              t = setTimeout(()=>{
-                const q = normalizeDigits(input.value).trim().toLowerCase().replace(/\s+/g,' ');
-                const neighborhood = document.getElementById('filterNeighborhood').value;
-                const base = neighborhood ? drivers.filter(d=>d.neighborhood===neighborhood) : drivers;
-
-                if(!q){
-                  displayDrivers(base);
-                  saveFilters();
-                  return;
-                }
-                const filtered = base.filter(d =>
-                  String(d.name||'').toLowerCase().includes(q) ||
-                  String(d.traineeId||'').toLowerCase().includes(q)
-                );
-                displayDrivers(filtered);
-                saveFilters();
-              }, 220);
-            });
-          })();
-        }
-
-    function setupKeyboardShortcuts() {
-      ['loginTraineeId'].forEach(id => {
-        const el = document.getElementById(id);
-        if(!el) return;
-        el.addEventListener('keydown', e => {
-          if(e.key === 'Enter'){
-            e.preventDefault();
-            handleLogin();
-          }
-        });
+    // ===== عناصر الواجهة المساعدة =====
+    function fillDaysCheckboxes(){
+      const host = document.getElementById('daysGroup');
+      if(!host) return;
+      host.innerHTML = '';
+      DAYS.forEach((d, i)=>{
+        const id = 'day_'+i;
+        const w = document.createElement('label');
+        w.className = 'checkbox-item';
+        w.innerHTML = `<input type="checkbox" value="${d}" id="${id}"><span>${d}</span>`;
+        host.appendChild(w);
       });
     }
 
-
-        function setupTraineeIdHints(){
-      // تلميح نموذج الدخول
-      const loginId = document.getElementById('loginTraineeId');
-      const loginHint = document.getElementById('loginIdHint');
-      if(loginId && loginHint){
-        loginId.addEventListener('input', (e)=>{
-          const s = hintTraineeIdState(e.target.value);
-          loginHint.className = 'field-hint ' + s.cls;
-          loginHint.textContent = s.msg;
-          // (اختياري) تنظيف لأي أحرف غير أرقام
-          e.target.value = normalizeDigits(e.target.value).replace(/[^\d]/g,'');
-        });
-      }
-
-      // تلميح نموذج التسجيل
-      const regId = document.getElementById('traineeId');
-      const regHint = document.getElementById('regIdHint');
-      if(regId && regHint){
-        regId.addEventListener('input', (e)=>{
-          const s = hintTraineeIdState(e.target.value);
-          regHint.className = 'field-hint ' + s.cls;
-          regHint.textContent = s.msg;
-          // (اختياري) تنظيف لأي أحرف غير أرقام
-          e.target.value = normalizeDigits(e.target.value).replace(/[^\d]/g,'');
-        });
-      }
+    function setUserHeaderUI(user){
+      const name = document.getElementById('userName');
+      const role = document.getElementById('userRole');
+      const homeU = document.getElementById('homeUserName');
+      if(name)  name.textContent  = sanitizeStr(user?.name || 'مستخدم');
+      if(homeU) homeU.textContent = sanitizeStr(user?.name || 'مستخدم');
+      if(role)  role.textContent  = sanitizeStr(user?.userType || 'راكب');
     }
 
-      function isValidTraineeIdFormat(id){
-        const v = String(id || '').trim();
-        const patternTD = /^[TD]\d{3,}$/i;        // T001 / D1234 ...
-        const patternROSTER = /^44\d+$/; // أوسع ويشمل 4431 و 4461 و 4451
-        return patternTD.test(v) || patternROSTER.test(v);
-      }
+    // ===== السائقون =====
+    function renderDrivers(list){
+      const wrap = document.getElementById('driversList');
+      const countEl = document.getElementById('availableDriversCount');
+      if(countEl) countEl.textContent = `(${list?.length ?? 0})`;
+      if(!wrap) return;
 
-
-    async function handleLogin() {
-      const traineeId = normalizeDigits($('#loginTraineeId').value).toUpperCase().trim();
-      if (!traineeId) { showError('يرجى إدخال رقم المتدرب'); $('#loginTraineeId').focus(); return; }
-
-      const loginBtn = $('#loginBtn');
-      loginBtn.disabled = true; loginBtn.textContent = 'جاري التحقق...';
-
-      try {
-        const result = await sendToGoogleSheets('verifyUser', { traineeId });
-
-        // ✅ مسجّل مسبقًا → دخول مباشر
-        if (result?.success && result?.data?.isRegistered === true) {
-          const d = result.data;
-          currentUser = {
-            name: d.name || 'مستخدم',
-            traineeId: d.traineeId,
-            userType: d.userType || 'متدرب',
-            phone: d.phone || '',
-            neighborhood: d.neighborhood || ''
-          };
-          localStorage.setItem('sand_currentUser', JSON.stringify(currentUser));
-          setAppMode('app');          // [جديد]
-          showMainInterface();
-          return;
-        }
-
-        // 🟦 موجود في ROSTER وغير مسجّل → افتح التسجيل المعزول
-        if (result?.success && result?.data?.inRoster === true && result?.data?.isRegistered !== true) {
-          allowSelfRegister = true;
-          lastVerifiedTrainee = normalizeDigits(traineeId).toUpperCase();
-
-          const nameFromRoster = result?.data?.rosterName || '';
-          setAppMode('register_only');        // [جديد]
-          showRegistrationForm(traineeId, nameFromRoster);
-          return;
-        }
-
-
-        if (result?.error === 'TRAINEE_NOT_AUTHORIZED') {
-          showError('عذرًا، رقم المتدرب غير مُفعّل في الكلية.');
-          return;
-        }
-
-        // غير موجود في الروستر
-        showError('عذرًا، رقم المتدرب غير موجود في قائمة المتدربين.');
-      } catch (err) {
-        showError('تعذّر الاتصال بالنظام. الرجاء المحاولة لاحقًا.');
-      } finally {
-        loginBtn.disabled = false; loginBtn.textContent = 'دخول إلى ساند';
-      }
-    }
-
-function showRegistrationForm(traineeId, name) {
-  if (!allowSelfRegister) {
-    showToast('تحقّق من رقمك أولًا عبر شاشة الدخول.','warn');
-    return;
-  }
-  setAppMode('register_only'); // إبقاء التبويبات مخفية
-
-      // تعبئة الحقول فقط
-    const tid = normalizeDigits(traineeId || lastVerifiedTrainee || '').toUpperCase();
-    const idInput = document.getElementById('traineeId');
-    idInput.value = tid;
-    idInput.readOnly = true;                    // 🔒 ممنوع تغييره بعد التحقق
-    const regHint = document.getElementById('regIdHint');
-    if (regHint){ regHint.className='field-hint good'; regHint.textContent='تم التحقق من الرقم التدريبي ✅'; }
-
-  document.getElementById('name').value = name || '';
-  document.getElementById('phone')?.focus();
-}
-
-
-
-
-    function showMainInterface() {
-      // لو المستخدم ناقص بيانات (نوع المستخدم)، نُدخله وضع التسجيل المعزول
-      if(!currentUser || !isValidUserType(currentUser.userType)){
-        allowSelfRegister = true;
-        lastVerifiedTrainee = currentUser?.traineeId || null;
-        setAppMode('register_only');
-
-        // تعبئة ما توفر من بيانات
-        document.getElementById('traineeId').value    = currentUser?.traineeId || '';
-        document.getElementById('name').value         = currentUser?.name || '';
-        document.getElementById('phone').value        = currentUser?.phone || '';
-        document.getElementById('neighborhood').value = currentUser?.neighborhood || '';
-        showToast('أكمل التسجيل باختيار نوع المستخدم (سائق/متدرب).','warn');
+      if(!list || !list.length){
+        wrap.innerHTML = `<div class="alert alert-warning">لا يوجد سائقون متاحون حالياً</div>`;
         return;
       }
 
-      // مستخدم مكتمل → الواجهة الكاملة
-      setAppMode('app');
-
-      document.getElementById('userName').textContent      = currentUser.name;
-      document.getElementById('homeUserName').textContent  = currentUser.name;
-      document.getElementById('userRole').textContent      = currentUser.userType;
-
-      const role = currentUser.userType;
-
-      if (role === 'سائق') {
-        document.getElementById('requestsTab').innerHTML = '🚗 طلبات التوصيل';
-        document.querySelector('.tab[data-tab="book"]').style.display = 'none';
-        document.getElementById('rateTitle').textContent = 'تقييم الراكب';
-        document.getElementById('rateSelectLabel').textContent = 'الراكب';
-
-        const tabDrivers = document.querySelector('.tab[data-tab="drivers"]');
-        if (tabDrivers) tabDrivers.style.display = 'none';
-        if (document.querySelector('.tab.active')?.dataset.tab === 'drivers') {
-          document.querySelector('.tab[data-tab="home"]')?.click();
-        }
-      } else { // متدرب فقط
-        document.getElementById('requestsTab').innerHTML = '📋 طلباتي';
-        document.querySelector('.tab[data-tab="book"]').style.display = 'block';
-        document.getElementById('rateTitle').textContent = 'تقييم السائق';
-        document.getElementById('rateSelectLabel').textContent = 'السائق';
-      }
-
-      // إظهار تبويب "السائقين" لغير السائق فقط
-      const tabDrivers2 = document.querySelector('.tab[data-tab="drivers"]');
-      if (tabDrivers2) {
-        if (role === 'سائق') {
-          tabDrivers2.style.display = 'none';
-          if (document.querySelector('.tab.active')?.dataset.tab === 'drivers') {
-            document.querySelector('.tab[data-tab="home"]')?.click();
-          }
-        } else {
-          tabDrivers2.style.display = 'block';
-        }
-      }
-
-
-
-
-      // بناء أيام الحجز
-      const daysWrap = document.getElementById('daysGroup');
-      daysWrap.innerHTML = '';
-      DAYS.forEach((d, i) => {
-        const id = 'day_' + i;
-        const div = document.createElement('div');
-        div.className = 'checkbox-item';
-        div.innerHTML = `<input type="checkbox" id="${id}" value="${d}"><label for="${id}">${d}</label>`;
-        daysWrap.appendChild(div);
-      });
-
-      // تحميل بيانات الواجهة
-      loadDriversFromSheets();
-      loadUserRequests();
-      updateTopStats();
-      updateUserStats();
-    }
-
-
-
-    async function handleRegistration(e) {
-      e.preventDefault();
-      const btn = $('#registerBtn');
-      if (btn.disabled) return;
-      btn.disabled = true;
-      btn.textContent = 'جاري التسجيل...';
-
-      const name        = $('#name').value.trim();
-      const traineeId   = normalizeDigits($('#traineeId').value).toUpperCase().trim();
-      const phone       = $('#phone').value.trim();
-      const neighborhood= $('#neighborhood').value;
-      const userType    = $('#userType').value;
-
-      const alreadyVerified = allowSelfRegister && lastVerifiedTrainee &&
-      traineeId === normalizeDigits(lastVerifiedTrainee).toUpperCase();
-
-      function resetBtn(){ btn.disabled=false; btn.textContent='تسجيل في ساند'; }
-
-      // ✅ تحقّقات صريحة (لأن e.preventDefault يمنع تحقق required التلقائي)
-      if (name.length < 2){ showToast('أدخل الاسم الكامل','warn'); return resetBtn(); }
-      if (!alreadyVerified && !isValidTraineeIdFormat(traineeId)){ showToast('صيغة رقم المتدرب غير صحيحة','warn'); return resetBtn(); }
-      if (!isValidPhoneKSA(phone)){ showToast('صيغة رقم الجوال غير صحيحة. استخدم 9665XXXXXXXX','warn'); return resetBtn(); }
-      if (!neighborhood){ showToast('اختر الحي','warn'); return resetBtn(); }
-      if (!isValidUserType(userType)){ showToast('اختر نوع المستخدم: سائق / متدرب','warn'); return resetBtn(); }
-
-
-      const data = { name, traineeId: alreadyVerified ? lastVerifiedTrainee : traineeId,phone, neighborhood, userType };
-
-      try {
-        const res = await sendToGoogleSheets('registerUser', data);
-
-        if (res?.success) {
-          const info = res.data || {};
-          showToast(`تم ${info.updated ? 'تحديث' : 'التسجيل'} ✅ - رقمك: ${info.traineeId || data.traineeId}`,'success');
-
-          currentUser = { ...data };
-          localStorage.setItem('sand_currentUser', JSON.stringify(currentUser));
-
-          e.target.reset();
-          allowSelfRegister = false;
-          lastVerifiedTrainee = null;
-
-          showMainInterface(); // ← سيعالج إظهار التبويبات حسب الدور
-          document.querySelector('.tab[data-tab="home"]')?.click();
-        } else if (res?.error === 'TRAINEE_ID_EXISTS') {
-          if (confirm('رقم المتدرب موجود مسبقًا.\nسجّل الدخول بدلًا من التسجيل؟')) {
-            $('#loginSection').style.display = 'block';
-            $('#tabsContainer').classList.remove('active');
-            $('#loginForm').classList.add('active');
-            $('#loginTraineeId').value = data.traineeId;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        } else {
-          showToast(res?.error || 'تعذّر التسجيل','error');
-        }
-      } catch (err) {
-        showToast('تعذّر الاتصال أثناء التسجيل.','error');
-      } finally {
-        resetBtn();
-      }
-    }
-
-
-    async function loadDriversFromSheets() {
-      // لا تحمّل ولا تعرض للسائق
-      if (currentUser?.userType === 'سائق') {
-        const list = $('#driversList');
-        if (list) {
-          list.innerHTML = `<div class="alert alert-info">هذه الصفحة غير مخصصة للسائقين.</div>`;
-        }
-        return;
-      }
-
-      // ✅ عرّف list هنا قبل أي استخدام
-      const list = $('#driversList');
-
-      // جرّب الكاش المحلي أولاً
-      const cached = lcGet('sand_cache_' + buildCacheKey('getDrivers', {}));
-      if (cached && Array.isArray(cached.data)) {
-        drivers = cached.data;
-        displayDrivers(drivers);
-      } else {
-        list.innerHTML = `<div class="loading"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>`;
-      }
-
-      try {
-        const r = await fetchWithCache('getDrivers', {}, { ttl: CACHE_TTL.getDrivers });
-        drivers = Array.isArray(r?.data) ? r.data : [];
-        displayDrivers();
-        updateDriverSelects();
-
-        const avNow = drivers.filter(d => (d.status || d.availability) === 'متاح').length;
-        const avEl = document.getElementById('availableDriversCount');
-        if (avEl) avEl.textContent = avNow ? `(${avNow})` : '';
-      } catch(e) {
-        if (!cached) list.innerHTML = `<div class="alert alert-warning">تعذّر تحميل قائمة السائقين. تحقق من الاتصال.</div>`;
-        drivers = [];
-        updateDriverSelects();
-        const avEl = document.getElementById('availableDriversCount');
-        if (avEl) avEl.textContent = '';
-      }
-    }
-
-    function displayDrivers(arr = drivers) {
-      const list = $('#driversList');
-      if (!arr || arr.length === 0) {
-        list.innerHTML = `<div class="alert alert-info">لا توجد سائقين متاحين حالياً.</div>`;
-        return;
-      }
-
-      const isDriverUser = currentUser?.userType === 'سائق';
-      list.innerHTML = '';
-
-      arr.forEach(d => {
-        const phone = d.phone || d.whatsapp || d.mobile || '';     // ✅ تعريف رقم الهاتف
-        const hasPhone = /^9665\d{8}$/.test(phone);                // ✅ تحقق موحّد
-        const status    = d.status || d.availability || 'متاح';    // فول-باك للحالة
-        const ratingValue = Number(d.rating ?? d.avgRating ?? 0);
-
-        const statusClass = (status === 'متاح') ? 'status-available' : 'status-booked';
-        const ratingStars = '⭐'.repeat(Math.max(0, Math.min(5, Math.floor(ratingValue))));
-        const waText = 'مرحباً ' + (d.name || '') + '، أنا ' + (currentUser ? currentUser.name : 'متدرب') + ' من منصة ساند. أود التواصل بخصوص التوصيل.';
-        const waUrl  = hasPhone ? `https://wa.me/${encodeURIComponent(phone)}?text=${encodeURIComponent(waText)}` : '#';
-        const waBtnHTML    = hasPhone ? `<a class="btn btn-whatsapp" target="_blank" rel="noopener" href="${waUrl}">📱 تواصل واتساب</a>`
-                                      : `<button class="btn btn-whatsapp" type="button" disabled title="لا يوجد رقم واتساب">📱 تواصل واتساب</button>`;
-
-        const normId       = String(d.traineeId || '').trim().toUpperCase();
-        const quickBtnHTML = (!isDriverUser && status === 'متاح')
-          ? `<button class="btn btn-primary" data-quick="${normId}" type="button">⚡ حجز سريع</button>`
-          : (status !== 'متاح' ? `<p style="color:#dc3545;font-weight:700">غير متاح حالياً</p>` : ``);
-
-
+      wrap.innerHTML = '';
+      list.forEach(d=>{
+        const phone = getWaPhoneFromRecord(d);
+        const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند".`) : '';
         const card = document.createElement('div');
         card.className = 'driver-card';
         card.innerHTML = `
           <div class="driver-info">
             <div class="driver-details">
-              <h3>${d.name || '-'}</h3>
-              <p><strong>🏘️ الحي:</strong> ${d.neighborhood || '-'}</p>
-              <p><strong>🆔 رقم المتدرب:</strong> ${d.traineeId || '-'}</p>
-              <p><strong>⭐ التقييم:</strong> <span class="rating">${ratingStars}</span> (${isNaN(ratingValue) ? '-' : ratingValue})</p>
-              <p><strong>🚗 عدد الرحلات:</strong> ${d.trips || 0}</p>
-              <span class="${statusClass}">${status || 'غير محدد'}</span>
+              <h3>${sanitizeStr(d.name || 'بدون اسم')}</h3>
+              <p>الرقم: <strong>${sanitizeStr(d.traineeId || d.id || '')}</strong></p>
+              <p>الحي: ${sanitizeStr(d.neighborhood || '-')}</p>
+              <p class="rating">التقييم: ${'⭐'.repeat(Math.max(1, Math.min(5, Number(d.rating)||0)))} (${d.rating||0})</p>
             </div>
-            <div>
-              ${waBtnHTML}
-              ${quickBtnHTML}
+            <div style="display:flex;gap:8px;align-items:center">
+              ${waUrl ? `<a class="btn btn-whatsapp" href="${waUrl}" target="_blank" rel="noopener">واتساب</a>`:''}
+              <button class="btn btn-primary" data-pick="${sanitizeStr(d.traineeId || d.id || '')}">اختيار</button>
             </div>
-          </div>`;
-        list.appendChild(card);
+          </div>
+        `;
+        wrap.appendChild(card);
       });
 
-      // مستمع زر "حجز سريع"
-      $$('#driversList [data-quick]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = String(btn.getAttribute('data-quick') || '').trim().toUpperCase();
-          const driver = drivers.find(x => String(x.traineeId || '').trim().toUpperCase() === id);
-          if (!driver) { showToast('لم يتم العثور على السائق المختار','warn'); return; }
-
+      // اختيار سريع لسائق
+      wrap.querySelectorAll('button[data-pick]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-pick');
           lastQuickDriverId = id;
           document.querySelector('.tab[data-tab="book"]')?.click();
-          updateDriverSelects(id); // يملأ القائمة ويختار السائق مباشرة
-          showToast(`تم اختيار ${driver.name} تلقائيًا ✅`,'success');
-        });
-      });
-    }
-
-
-
-    function filterDriversByNeighborhood() {
-      const val = $('#filterNeighborhood').value;
-      if(!val) return displayDrivers();
-      displayDrivers(drivers.filter(d => d.neighborhood === val));
-    }
-
-    function updateDriverSelects(preselectId = null) {
-      const available = drivers.filter(d => (d.status || d.availability) === 'متاح');
-      const selBook = $('#selectedDriver');
-      if (!selBook) return;
-
-      const prev = String(selBook.value || '').trim().toUpperCase();
-      selBook.innerHTML = `<option value="">اختر السائق</option>`;
-
-      available.forEach(d => {
-        const rv = Number(d.rating ?? d.avgRating ?? 0);
-        const val = String(d.traineeId || '').trim().toUpperCase();
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = `${d.name} - ${d.neighborhood || '-'} (⭐${isNaN(rv)?'-':rv})`;
-        selBook.appendChild(opt);
-      });
-
-      const target = String(preselectId || lastQuickDriverId || prev || '').trim().toUpperCase();
-      if (target) {
-        const found = Array.from(selBook.options).some(o => String(o.value).toUpperCase() === target);
-        if (found) selBook.value = target;
-      }
-    }
-    function fmtDateTime(v){
-      if (v == null || v === '') return '-';
-
-      let d;
-      if (typeof v === 'number') {
-        d = (v > 1e10) ? new Date(v)               // Unix ms
-                      : new Date(Date.UTC(1899,11,30) + v*86400000); // Google Sheets serial
-      } else {
-        d = new Date(String(v).trim());            // ISO/Text
-      }
-      if (isNaN(d)) return '-';
-
-      // ميلادي عربي + توقيت الرياض
-      return new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        hour12: false,
-        timeZone: 'Asia/Riyadh',
-        numberingSystem: 'arab' // أرقام عربية؛ احذفها لو تبغى 123
-      }).format(d);
-    }
-
-
-
-
-    async function loadUserRequests() {
-      if (!currentUser) return;
-
-      const list = $('#userRequestsList');
-      list.innerHTML = `
-        <div class="loading">
-          <div class="spinner"></div>
-          <p>جاري تحميل الطلبات...</p>
-        </div>`;
-      approvedPartners = [];
-
-      try {
-        const role = currentUser.userType;
-
-        // ===== سائق =====
-        if (role === 'سائق') {
-          const res = await sendToGoogleSheets('getDriverRequests', {
-            driverTraineeId: currentUser.traineeId
-          });
-
-          if (res && res.success) {
-            const reqs = (res && res.data && Array.isArray(res.data.requests))
-              ? res.data.requests
-              : [];
-
-            const pendingCount = reqs.filter(r => r.status === 'معلق').length;
-            updateRequestsBadge(pendingCount);
-
-            if (!reqs.length) {
-              list.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
-              return;
+          setTimeout(()=>{
+            const sel = document.getElementById('selectedDriver');
+            if(sel){
+              const match = drivers.find(x => (x.traineeId||x.id) == id);
+              if(match){
+                sel.value = (match.traineeId || match.id || '');
+              }
             }
-
-            // اعرض الطلبات
-            displayDriverRequests(reqs);
-
-            // جهّز أطراف التقييم الموافق عليهم
-            reqs
-              .filter(r => r.status === 'مقبول')
-              .forEach(r => {
-                approvedPartners.push({
-                  id: String(r.passengerTraineeId || '').trim().toUpperCase(),
-                  name: r.passengerName,
-                  phone: r.passengerPhone,
-                  type: 'راكب'
-                });
-              });
-
-            return;
-          }
-
-          // في حال لم تكن success
-          list.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
-          updateRequestsBadge(0);
-          return;
-        }
-
-        // ===== متدرب (راكب) أو كلاهما (نُعاملها كراكب هنا) =====
-        const res = await sendToGoogleSheets('getPassengerRequests', {
-          passengerTraineeId: currentUser.traineeId
-        });
-
-        if (res && res.success) {
-          const reqs = Array.isArray(res.data) ? res.data : [];
-
-          const pendingCount = reqs.filter(r => r.status === 'معلق').length;
-          updateRequestsBadge(pendingCount);
-
-          if (!reqs.length) {
-            list.innerHTML = `<div class="alert alert-info">لم ترسل أي طلبات بعد</div>`;
-            return;
-          }
-
-          // اعرض الطلبات
-          displayPassengerRequests(reqs);
-
-          // جهّز أطراف التقييم الموافق عليهم
-          reqs
-            .filter(r => r.status === 'مقبول')
-            .forEach(r => {
-              approvedPartners.push({
-                id: String(r.driverTraineeId || '').trim().toUpperCase(),
-                name: r.driverName,
-                phone: r.driverPhone,
-                type: 'سائق'
-              });
-            });
-
-          return;
-        }
-
-        // في حال لم تكن success
-        list.innerHTML = `<div class="alert alert-info">لم ترسل أي طلبات بعد</div>`;
-        updateRequestsBadge(0);
-
-      } catch (e) {
-        list.innerHTML = `<div class="alert alert-warning">تعذّر تحميل الطلبات. تحقق من الاتصال.</div>`;
-        updateRequestsBadge(0);
-      }
-    }
-
-    function displayDriverRequests(requests) {
-      const list = $('#userRequestsList');
-      if(!requests.length) {
-        list.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
-        return;
-      }
-      
-      list.innerHTML = '';
-      requests.forEach(r => {
-        const statusClass = r.status === 'معلق' ? 'status-pending' : 
-                           (r.status === 'مقبول' ? 'status-accepted' : 'status-rejected');
-        const wrap = document.createElement('div');
-        wrap.className = `request-card ${r.status === 'مقبول' ? 'accepted' : r.status === 'مرفوض' ? 'rejected' : ''}`;
-        const waText = 'مرحباً ' + (r.passengerName || '') + '، بخصوص طلب التوصيل من منصة ساند...';
-        const waUrl = r.passengerPhone ? `https://wa.me/${encodeURIComponent(r.passengerPhone)}?text=${encodeURIComponent(waText)}` : '#';
-
-
-        wrap.innerHTML = `
-          <div class="request-header">
-            <div class="request-title">طلب من ${r.passengerName || '-'}</div>
-            <span class="request-status ${statusClass}">${r.status || '-'}</span>
-          </div>
-          <div class="request-details">
-            <p><strong>🆔 رقم المتدرب:</strong> ${r.passengerTraineeId || '-'}</p>
-            <p><strong>🏘️ الحي:</strong> ${r.passengerNeighborhood || '-'}</p>
-            <p><strong>📅 الأيام المطلوبة:</strong> ${(r.selectedDays || []).join(', ')}</p>
-            <p><strong>⏰ مدة الحجز:</strong> ${r.duration || '-'}</p>
-            <p><strong>📋 تاريخ الطلب:</strong> ${fmtDateTime(r.requestDate)}</p>
-            ${r.notes ? `<p><strong>📝 ملاحظات:</strong> ${r.notes}</p>` : ''}
-          </div>
-          <div class="request-actions">
-            ${r.status === 'معلق' ? `
-              <button class="btn btn-accept" data-rsp='{"id":"${r.id}","resp":"مقبول"}' type="button">✅ موافق</button>
-              <button class="btn btn-reject" data-rsp='{"id":"${r.id}","resp":"مرفوض"}' type="button">❌ رفض</button>
-            ` : ''}
-            <a class="btn btn-contact btn-whatsapp" target="_blank" rel="noopener" href="${waUrl}">📱 تواصل معه</a>
-          </div>`;
-        list.appendChild(wrap);
-      });
-
-      $$('#userRequestsList [data-rsp]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const data = JSON.parse(btn.getAttribute('data-rsp'));
-          const ok = confirm(data.resp === 'مقبول' ? 'هل أنت متأكد من الموافقة؟' : 'هل أنت متأكد من الرفض؟');
-          if(!ok) return;
-          
-          try {
-            const res = await sendToGoogleSheets('respondToRequest', {
-              requestId: data.id, 
-              response: data.resp, 
-              driverTraineeId: currentUser.traineeId
-            });
-            if(res && res.success) { 
-              showToast('تمت العملية بنجاح ✅','success');
-            } else { 
-              showToast(res?.error || 'حدث خطأ، حاول مجدداً','error');
-            }
-          } catch(e) { 
-            showToast('تعذّر الاتصال. حاول مجدداً.','error');
-          }
-          loadUserRequests();
+          }, 50);
         });
       });
     }
 
-    function displayPassengerRequests(requests) {
-      const list = $('#userRequestsList');
-      if(!requests.length) {
-        list.innerHTML = `<div class="alert alert-info">لم ترسل أي طلبات بعد</div>`;
-        return;
-      }
-      
-      list.innerHTML = '';
-      requests.forEach(r => {
-        const state = r.status;
-        const statusClass = state === 'معلق' ? 'status-pending' : 
-                           (state === 'مقبول' ? 'status-accepted' : 'status-rejected');
-        const icon = state === 'معلق' ? '⏳' : (state === 'مقبول' ? '✅' : '❌');
-        const msg = state === 'مقبول' ? 'تم قبول طلبك! السائق سيتواصل معك' : 
-                   (state === 'مرفوض' ? 'تم رفض الطلب. يمكنك اختيار سائق آخر' : 'في انتظار رد السائق');
-        const waText = 'مرحباً ' + (r.driverName || '') + '، بخصوص التوصيل المتفق عليه من منصة ساند...';
-        const waUrl = r.driverPhone ? `https://wa.me/${encodeURIComponent(r.driverPhone)}?text=${encodeURIComponent(waText)}` : '#';
-
-
-        const wrap = document.createElement('div');
-        wrap.className = `request-card ${state === 'مقبول' ? 'accepted' : state === 'مرفوض' ? 'rejected' : ''}`;
-        
-        wrap.innerHTML = `
-          <div class="request-header">
-            <div class="request-title">${icon} طلب للسائق ${r.driverName || '-'}</div>
-            <span class="request-status ${statusClass}">${state || '-'}</span>
-          </div>
-          <div class="request-details">
-            <p><strong>🆔 رقم السائق:</strong> ${r.driverTraineeId || '-'}</p>
-            <p><strong>📅 الأيام المطلوبة:</strong> ${(r.selectedDays || []).join(', ')}</p>
-            <p><strong>⏰ مدة الحجز:</strong> ${r.duration || '-'}</p>
-            <p><strong>📋 تاريخ الطلب:</strong> ${fmtDateTime(r.requestDate)}</p>
-            <div class="alert ${state === 'مقبول' ? 'alert-success' : state === 'مرفوض' ? 'alert-warning' : 'alert-info'}">${msg}</div>
-          </div>
-          <div class="request-actions">
-            ${state === 'مقبول' ? `
-              <a class="btn btn-contact btn-whatsapp" target="_blank" rel="noopener" href="${waUrl}">📱 تواصل مع السائق</a>
-            ` : state === 'مرفوض' ? `
-              <button class="btn" type="button" onclick="document.querySelector('.tab[data-tab=\\'drivers\\']').click()">🔍 اختر سائق آخر</button>
-            ` : `<p style="color:#666;font-style:italic">سيتم إشعارك عند رد السائق</p>`}
-          </div>`;
-        list.appendChild(wrap);
-      });
-    }
-
-    function populateRatingOptions() {
-      const sel = $('#ratedDriver');
-      sel.innerHTML = `<option value="">اختر</option>`;
-      if(!approvedPartners.length) return;
-      approvedPartners.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = String(p.id).trim().toUpperCase();
-        opt.textContent = `${p.name}`;
-        opt.dataset.phone = p.phone || '';
-        opt.dataset.type = p.type;
-        sel.appendChild(opt);
-      });
-    }
-
-    async function handleBooking(e) {
-      if(appMode !== 'app'){ showToast('أكمل التسجيل أولاً','warn'); return; }
-
-      e.preventDefault();
-      if(!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً');
-        return;
-      }
-
-      const bookingBtn = $('#bookingBtn');
-      bookingBtn.disabled = true;
-      bookingBtn.textContent = 'جاري الإرسال...';
-
-      const selectedDays = $$('#daysGroup input[type="checkbox"]:checked').map(x => x.value);
-      if(selectedDays.length === 0) {
-        showToast('يرجى اختيار الأيام المطلوبة','warn');
-        bookingBtn.disabled = false;
-        bookingBtn.textContent = 'إرسال طلب التوصيل';
-        return;
-      }
-
-      const driverId = String($('#selectedDriver').value || '').trim().toUpperCase();
-      const driver   = drivers.find(d => String(d.traineeId || '').trim().toUpperCase() === driverId);
-      if(!driver) {
-        showToast('يرجى اختيار السائق','warn');
-        bookingBtn.disabled = false;
-        bookingBtn.textContent = 'إرسال طلب التوصيل';
-        return;
-      }
-
-      function getLocalISO() {
-        const now = new Date();
-        const tz = -now.getTimezoneOffset(); // فرق التوقيت بالدقائق
-        const sign = tz >= 0 ? '+' : '-';
-        const hh = String(Math.floor(Math.abs(tz)/60)).padStart(2,'0');
-        const mm = String(Math.abs(tz)%60).padStart(2,'0');
-        return now.toISOString().replace('Z', `${sign}${hh}:${mm}`);
-      }
-
-      const durationValue = Number($('#duration').value);
-      if(!durationValue) {
-        showToast('يرجى اختيار مدة الحجز','warn');
-        bookingBtn.disabled = false;
-        bookingBtn.textContent = 'إرسال طلب التوصيل';
-        return;
-      }
-      const driverPhone = driver.phone || driver.whatsapp || driver.mobile || '';
-
-      const durationLabel = {1:'أسبوع واحد',2:'أسبوعين',3:'3 أسابيع',4:'شهر كامل'}[durationValue] || (durationValue + ' أسابيع');
-
-      const bookingData = {
-        passengerName: currentUser.name,
-        passengerTraineeId: currentUser.traineeId,
-        passengerPhone: currentUser.phone,
-        passengerNeighborhood: currentUser.neighborhood,
-        driverName: driver.name,
-        driverTraineeId: driver.traineeId,
-        driverPhone: driverPhone,
-        selectedDays,
-        duration: durationLabel,
-        notes: $('#tripNotes').value,
-        requestDate: getLocalISO()   // ✅ مهم
-      };
-
-      try {
-        const saveRes = await sendToGoogleSheets('submitBooking', bookingData);
-        if(!(saveRes && saveRes.success)) {
-          showToast(saveRes?.error || 'تعذّر حفظ الطلب في ساند.','error');
-          bookingBtn.disabled = false;
-          bookingBtn.textContent = 'إرسال طلب التوصيل';
-          return;
-        }
-      } catch(e) {
-        showToast('تعذّر حفظ الطلب بسبب الاتصال.','error');
-        bookingBtn.disabled = false;
-        bookingBtn.textContent = 'إرسال طلب التوصيل';
-        return;
-      }
-
-      const msgLines = [
-        '🚗 طلب توصيل جديد من منصة ساند',
-        '',
-        'مرحباً ' + (bookingData.driverName || '') + '،',
-        '',
-        'لديك طلب توصيل جديد من:',
-        '👤 الاسم: ' + (bookingData.passengerName || ''),
-        '🆔 رقم المتدرب: ' + (bookingData.passengerTraineeId || ''),
-        '📍 الحي: ' + (bookingData.passengerNeighborhood || ''),
-        '📅 الأيام المطلوبة: ' + selectedDays.join(', '),
-        '⏰ مدة الحجز: ' + (bookingData.duration || '')
-      ];
-      if (bookingData.notes) msgLines.push('📝 ملاحظات: ' + bookingData.notes);
-      msgLines.push('', 'للرد على الطلب، ادخل منصة ساند واختر موافق/رفض.', 'أو تواصل معي مباشرةً عبر واتساب.');
-
-      const msg = msgLines.join('\n');
-
-      if (driverPhone) {
-        const waUrl = `https://wa.me/${encodeURIComponent(driverPhone)}?text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank', 'noopener');
-      } else {
-        showToast('ما عند السائق رقم واتساب مسجّل','warn');
-      }
-
-
-
-      showToast('تم حفظ الطلب وإعداد رسالة واتساب ✅','success');
-
-      e.target.reset();
-      // حمّل الطلبات وحدث الإحصائيات أولاً
-      await loadUserRequests();
-      await updateUserStats();
-      // بعدها فعّل الزر وغيّر النص
-      bookingBtn.disabled = false;
-      bookingBtn.textContent = 'إرسال طلب التوصيل';
-
-    }
-
-    async function handleRating(e) {
-      if(appMode !== 'app'){ showToast('أكمل التسجيل أولاً','warn'); return; }
-
-      e.preventDefault();
-      if(!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً');
-        return;
-      }
-      
-      const ratingBtn = $('#ratingBtn');
-      ratingBtn.disabled = true;
-      ratingBtn.textContent = 'جاري الإرسال...';
-
-      const partnerId = String($('#ratedDriver').value).trim().toUpperCase();
-      const partner = approvedPartners.find(p => String(p.id).trim().toUpperCase() === partnerId);
-      if(!partner) {
-        showToast('اختر طرفاً تمت الموافقة عليه');
-        ratingBtn.disabled = false;
-        ratingBtn.textContent = 'إرسال التقييم';
-        return;
-      }
-
-      const ratingData = {
-        targetType: partner.type,
-        targetName: partner.name,
-        targetTraineeId: partner.id,
-        raterName: currentUser.name,
-        raterTraineeId: currentUser.traineeId,
-        stars: $('#ratingStars').value,
-        notes: $('#ratingNotes').value
-      };
-
-      try {
-        const res = await sendToGoogleSheets('submitRating', ratingData);
-        if(res && res.success) {
-          showToast('تم إرسال التقييم بنجاح ✅','success');
-        } else {
-          showToast(res?.error || 'تعذّر إرسال التقييم','error');
-        }
-      } catch(e) {
-        showToast('تعذّر الاتصال أثناء إرسال التقييم.','error');
-      } finally {
-        e.target.reset();
-        ratingBtn.disabled = false;
-        ratingBtn.textContent = 'إرسال التقييم';
-      }
-    }
-
-
-
-    async function updateUserStats() {
-      try {
-        const topR = await fetchWithCache('getTopStats', {}, { ttl: CACHE_TTL.getTopStats });
-        const top = topR?.data || null;
-        $('#communitySize').textContent = resolveCommunityCount(top);
-      } catch { $('#communitySize').textContent = '-'; }
-
-      if(!currentUser){
-        $('#myTripsCount').textContent='-'; $('#myRating').textContent='-'; $('#myActiveRequests').textContent='-';
-        return;
-      }
-
-      try {
-        const r = await fetchWithCache('getUserStats', {
-          traineeId: currentUser.traineeId, userType: currentUser.userType
-        }, { ttl: CACHE_TTL.getUserStats });
-        const d = r?.data;
-        $('#myTripsCount').textContent    = d?.totalTrips ?? '-';
-        $('#myRating').textContent        = d?.rating ?? '-';
-        $('#myActiveRequests').textContent= d?.activeRequests ?? '-';
-      } catch {
-        $('#myTripsCount').textContent='-'; $('#myRating').textContent='-'; $('#myActiveRequests').textContent='-';
-      }
-    }
-
-
-    function pick(v){ return (v ?? undefined); }
-    function resolveCommunityCount(d){
-      return pick(d?.totalUsers) ?? pick(d?.communitySize) ?? pick(d?.activeUsers) ?? pick(d?.members) ?? '-';
-    }
-
-    async function updateTopStats(prefetched){
+    async function loadDrivers(){
       try{
-        const r = prefetched ? { data: prefetched } : await fetchWithCache('getTopStats', {}, { ttl: CACHE_TTL.getTopStats });
-        const d = r?.data || null;
-        $('#totalUsersHeader').textContent   = resolveCommunityCount(d);
-        $('#totalTripsHeader').textContent   = (d?.totalTrips ?? d?.trips ?? '-');
-        $('#satisfactionHeader').textContent = (d?.satisfaction ?? d?.avgRating ?? '-') || '-';
+        const q = $('#searchDriver')?.value?.trim() || '';
+        const neigh = $('#filterNeighborhood')?.value || '';
+        const {data} = await fetchWithCache('getDrivers', {}, {ttl:CACHE_TTL.getDrivers});
+        let list = Array.isArray(data) ? data : [];
 
-        if (document.getElementById('availableDriversCount')) {
-          const av = (d && (d.activeDrivers ?? d.availableDrivers)) ?? '';
-          document.getElementById('availableDriversCount').textContent = av !== '' ? `(${av})` : '';
+        // فلترة
+        if(q){
+          const nq = normalizeDigits(q).toLowerCase();
+          list = list.filter(d =>
+            String(d.name||'').toLowerCase().includes(nq) ||
+            String(d.traineeId||d.id||'').toLowerCase().includes(nq)
+          );
         }
-        if (!currentUser && (d?.pendingRequests ?? d?.pending) != null) {
-          updateRequestsBadge(Number(d.pendingRequests ?? d.pending) || 0);
+        if(neigh) list = list.filter(d => String(d.neighborhood||'') === neigh);
+
+        drivers = list;
+        renderDrivers(list);
+      }catch(e){
+        $('#driversList').innerHTML = `<div class="alert alert-error">تعذر تحميل قائمة السائقين</div>`;
+      }
+    }
+
+    // ===== طلبات المستخدم =====
+    function renderRequests(list){
+      const host = document.getElementById('userRequestsList');
+      const badge = document.getElementById('requestsBadge');
+      if(!host) return;
+
+      if(!list || !list.length){
+        host.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
+        if(badge){ badge.textContent='0'; badge.style.display='none'; }
+        return;
+      }
+
+      host.innerHTML = '';
+      let activeCount = 0;
+
+      list.forEach(r=>{
+        const st = String(r.status||'pending');
+        if(st==='pending') activeCount++;
+        const cls = st==='accepted' ? 'accepted' : (st==='rejected' ? 'rejected' : '');
+        const d = document.createElement('div');
+        d.className = `request-card ${cls}`;
+        d.innerHTML = `
+          <div class="request-header">
+            <div class="request-title">طلب #${sanitizeStr(r.id||'-')}</div>
+            <div class="status-${st==='accepted'?'accepted':(st==='rejected'?'rejected':'pending')}">
+              ${st==='accepted'?'مقبول':(st==='rejected'?'مرفوض':'قيد المراجعة')}
+            </div>
+          </div>
+          <div class="request-details">
+            <p>السائق: <strong>${sanitizeStr(r.driverName || '-')}</strong></p>
+            <p>الأيام: ${Array.isArray(r.days)? r.days.join('، ') : '-'}</p>
+            <p>المدة: ${sanitizeStr(r.duration || '-')} أسبوع</p>
+            ${r.notes? `<p>ملاحظات: ${sanitizeStr(r.notes)}</p>`:''}
+          </div>
+        `;
+        host.appendChild(d);
+      });
+
+      if(badge){
+        badge.textContent = String(activeCount);
+        badge.style.display = activeCount ? 'inline-flex' : 'none';
+      }
+    }
+
+    async function loadRequests(){
+      if(!currentUser) return;
+      try{
+        const {data} = await fetchWithCache('getPassengerRequests', { passengerTraineeId: currentUser.traineeId }, { ttl: CACHE_TTL.getPassengerRequests });
+        renderRequests(Array.isArray(data)?data:[]);
+      }catch{
+        $('#userRequestsList').innerHTML = `<div class="alert alert-error">تعذر تحميل الطلبات</div>`;
+      }
+    }
+
+
+    function pickNumber(obj, keys){
+        for(const k of keys){
+          const v = Number(obj?.[k]);
+          if(!Number.isNaN(v) && v >= 0) return v;
+        }
+        return null;
+      }
+
+    // ===== إحصائياتي =====
+      function updateMyStatsUI(data){
+        $('#myTripsCount').textContent     = (data?.totalTrips ?? '-');
+        $('#myRating').textContent         = data?.rating ? `${data.rating} ⭐` : '-';
+        $('#myActiveRequests').textContent = data?.activeRequests ?? '-';
+        $('#communitySize').textContent    = (data?.community ?? '-');
+      }
+
+
+    async function loadMyStats(){
+      if(!currentUser) return;
+      try{
+          const [{data:me},{data:top}] = await Promise.all([
+            fetchWithCache('getUserStats', {
+              traineeId: currentUser.traineeId,
+              userType: currentUser.userType   // ✅ هذا هو المهم
+            }, {ttl: CACHE_TTL.getUserStats}),
+            fetchWithCache('getTopStats', {}, {ttl: CACHE_TTL.getTopStats})
+          ]);
+
+
+        // جهّز “community” حتى لو السيرفر ما رجّعه
+        const communityFallback = pickNumber(me, ['community','communitySize','members','users','community_count'])
+                              ?? pickNumber(top, ['totalUsers','users']);
+        const merged = {...(me||{}), community: communityFallback};
+
+        updateMyStatsUI(merged||{});
+      }catch(e){
+        // ممكن تخليها صامتة أو تضيف لوج:
+        console.debug('loadMyStats error', e);
+      }
+    }
+
+
+    // ===== الحجز =====
+    function prepareBookingUI(){
+      // تعبئة السائقين في السلكت
+      const sel = document.getElementById('selectedDriver');
+      if(sel){
+        const cur = sel.value;
+        sel.innerHTML = `<option value="">اختر السائق</option>` + drivers.map(d=>{
+          const id = sanitizeStr(d.traineeId || d.id || '');
+          const nm = sanitizeStr(d.name || id || 'سائق');
+          return `<option value="${id}">${nm} — ${sanitizeStr(d.neighborhood||'-')}</option>`;
+        }).join('');
+        if(lastQuickDriverId) sel.value = lastQuickDriverId;
+        if(cur && !sel.value) sel.value = cur;
+      }
+      fillDaysCheckboxes();
+    }
+
+    async function submitBooking(ev){
+      ev?.preventDefault?.();
+      if(!currentUser){ showToast('سجّل الدخول أولاً','warn'); return; }
+
+      const driverId = $('#selectedDriver').value;
+      const days = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(i=>i.value);
+      const duration = Number($('#duration').value || 0);
+      const notes = $('#tripNotes').value.trim();
+
+      if(!driverId){ showToast('اختر السائق','warn'); return; }
+      if(!days.length){ showToast('اختر على الأقل يوم واحد','warn'); return; }
+      if(!duration){ showToast('اختر المدة','warn'); return; }
+
+      const driver = drivers.find(d => (d.traineeId||d.id) == driverId);
+      const wa = driver ? getWaPhoneFromRecord(driver) : '';
+
+      try{
+        $('#bookingBtn').disabled = true;
+        const payload = {
+          passengerId: currentUser.traineeId,
+          passengerName: currentUser.name,
+          driverId,
+          days,
+          duration,
+          notes
+        };
+        const resp = await sendToGoogleSheets('submitBooking', payload);
+        if(resp?.ok){
+          showToast('تم إرسال الطلب بنجاح','success');
+          // واتساب اختياري
+          if(wa){
+            const msg = `مرحباً ${driver?.name||''}، أنا ${currentUser.name}. طلبت توصيل (${days.join('، ')}) لمدة ${duration} أسبوع(أسابيع) عبر "ساند".`;
+            window.open(buildWaUrl(wa, msg), '_blank', 'noopener');
+          }
+          loadRequests();
+          document.querySelector('.tab[data-tab="requests"]')?.click();
+        }else{
+          showToast('تعذر حفظ الطلب','error');
         }
       }catch{
-        $('#totalUsersHeader').textContent='-';
-        $('#totalTripsHeader').textContent='-';
-        $('#satisfactionHeader').textContent='-';
+        showToast('خطأ في الاتصال','error');
+      }finally{
+        $('#bookingBtn').disabled = false;
       }
     }
 
+    // ===== التقييم =====
+    function prepareRatingUI(){
+      const sel = document.getElementById('ratedDriver');
+      if(!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">اختر</option>` + drivers.map(d=>{
+        const id = sanitizeStr(d.traineeId || d.id || '');
+        const nm = sanitizeStr(d.name || id || 'سائق');
+        return `<option value="${id}">${nm}</option>`;
+      }).join('');
+      if(cur) sel.value = cur;
+    }
+
+    async function submitRating(ev){
+      ev?.preventDefault?.();
+      if(!currentUser){ showToast('سجّل الدخول أولاً','warn'); return; }
+      const driverId = $('#ratedDriver').value;
+      const stars    = Number($('#ratingStars').value || 0);
+      const notes    = $('#ratingNotes').value.trim();
+
+      if(!driverId || !stars){ showToast('اختر السائق والتقييم','warn'); return; }
+
+      try{
+        $('#ratingBtn').disabled = true;
+        const payload = {
+          passengerId: currentUser.traineeId,
+          driverId,
+          stars,
+          notes
+        };
+        const resp = await sendToGoogleSheets('submitRating', payload);
+        if(resp?.ok){
+          showToast('شكراً لتقييمك','success');
+          $('#ratingForm').reset();
+          loadMyStats();
+        }else{
+          showToast('تعذر إرسال التقييم','error');
+        }
+      }catch{
+        showToast('خطأ في الاتصال','error');
+      }finally{
+        $('#ratingBtn').disabled = false;
+      }
+    }
+
+    // ===== التسجيل =====
+    async function submitRegistration(ev){
+      ev?.preventDefault?.();
+      const name  = $('#name').value.trim();
+      const id    = normalizeDigits($('#traineeId').value.trim());
+      const phone = normalizePhoneKSA($('#phone').value);
+      const hood  = $('#neighborhood').value;
+      const type  = $('#userType').value;
+
+      if(!name || !id || !phone || !hood || !isValidUserType(type)){
+        showToast('أكمل الحقول المطلوبة بشكل صحيح','warn'); return;
+      }
+
+      try{
+        $('#registerBtn').disabled = true;
+        const payload = {name, traineeId:id, phone, neighborhood:hood, userType:type};
+        const resp = await sendToGoogleSheets('registerUser', payload);
+        if(resp?.ok){
+          showToast('تم التسجيل بنجاح، يمكنك الدخول الآن','success');
+          // عودة لشاشة الدخول
+          setAppMode('login');
+          $('#loginTraineeId').value = id;
+        }else{
+          showToast(resp?.error||'تعذر إتمام التسجيل','error');
+        }
+      }catch{
+        showToast('خطأ في الاتصال','error');
+      }finally{
+        $('#registerBtn').disabled = false;
+      }
+    }
+
+    // ===== تسجيل الدخول =====
+    async function doLogin(){
+      const raw = $('#loginTraineeId').value.trim();
+      const id  = normalizeDigits(raw);
+      if(!/^\d{6,}$/.test(id)){ showToast('رقم المتدرب غير صحيح','warn'); return; }
+
+      try{
+        $('#loginBtn').disabled = true;
+        const resp = await sendToGoogleSheets('verifyUser', { traineeId:id });
+        if (resp?.success && resp?.data){
+          currentUser = resp.data; // {name, traineeId, userType, ...}
+          setUserHeaderUI(currentUser);
+          setAppMode('app');
+          document.documentElement.classList.add('app-ready'); // إغلاق شاشة المقدمة
+          showToast('مرحباً بك في ساند','success');
+          // تحميل أولي
+          heartbeat();
+          loadDrivers();
+          loadRequests();
+          loadMyStats();
+        }else{
+          if(allowSelfRegister){
+            showToast('لم يتم العثور على رقمك — أكمل التسجيل','warn');
+            setAppMode('register_only');
+            $('#traineeId').value = id;
+          }else{
+            showToast('رقمك غير موجود — تواصل مع المنشأة','error');
+          }
+        }
+      }catch{
+        showToast('تعذر التحقق من الرقم','error');
+      }finally{
+        $('#loginBtn').disabled = false;
+      }
+    }
+
+    // ===== الثيم =====
+    function toggleTheme(){
+      const root = document.documentElement;
+      const btn  = document.getElementById('themeToggleBtn');
+      const dark = root.classList.toggle('dark');
+      if(btn) btn.textContent = dark ? 'الوضع الفاتح' : 'الوضع الداكن';
+      try{ localStorage.setItem('sand_theme', dark?'dark':'light'); }catch{}
+    }
+    function restoreTheme(){
+      try{
+        const v = localStorage.getItem('sand_theme');
+        if(v==='dark'){ document.documentElement.classList.add('dark'); $('#themeToggleBtn').textContent='الوضع الفاتح'; }
+      }catch{}
+    }
+
+    // ===== دعم عائم =====
+    function setupSupportFab(){
+      const fab = document.getElementById('supportFab');
+      const welcomeTip = document.getElementById('welcomeSupportTip');
+      if(!fab) return;
+      
+      const main = fab.querySelector('button.main');
+      const menu = fab.querySelector('.support-menu');
+      
+      // إظهار التلميح الترحيبي تلقائيًا
+      const hasSeenTip = localStorage.getItem('sand_support_tip_seen');
+      if(!hasSeenTip && welcomeTip){
+        setTimeout(()=>{
+          welcomeTip.classList.add('show');
+          
+          // إخفاء بعد 6 ثوانٍ
+          setTimeout(()=>{
+            welcomeTip.classList.remove('show');
+            localStorage.setItem('sand_support_tip_seen', 'true');
+          }, 6000);
+        }, 1500); // تأخير ثانية ونص بعد الدخول
+      }
+      
+      // إغلاق التلميح عند الضغط على ×
+      if(welcomeTip){
+        welcomeTip.addEventListener('click', (e)=>{
+          if(e.target === welcomeTip || e.offsetX > welcomeTip.offsetWidth - 30){
+            welcomeTip.classList.remove('show');
+            localStorage.setItem('sand_support_tip_seen', 'true');
+          }
+        });
+      }
+      
+      // فتح/إغلاق قائمة الدعم
+      main?.addEventListener('click', ()=>{
+        fab.classList.toggle('open');
+        if(welcomeTip) welcomeTip.classList.remove('show');
+      });
+      
+      // إغلاق عند الضغط خارج القائمة
+      document.addEventListener('click', (e)=>{
+        if(!fab.contains(e.target)){
+          fab.classList.remove('open');
+        }
+      });
+    }
+    // ===== إحداثيات الواجهة =====
+    function setupUIEvents(){
+      // تبويبات
+      $$('.tab').forEach(b=>{
+        b.addEventListener('click', ()=> switchTab(b.dataset.tab));
+      });
+
+      $('#openHousingBtn')?.addEventListener('click', ()=>{
+        // افتح صفحة عامة مستقلة لساند للسكن
+        window.location.href = 'housing.html';
+      });
+
+
+      // أزرار
+      $('#refreshDriversBtn')?.addEventListener('click', loadDrivers);
+      $('#refreshRequestsBtn')?.addEventListener('click', loadRequests);
+      $('#bookingForm')?.addEventListener('submit', submitBooking);
+      $('#ratingForm')?.addEventListener('submit', submitRating);
+      $('#registrationForm')?.addEventListener('submit', submitRegistration);
+      $('#loginBtn')?.addEventListener('click', doLogin);
+      $('#logoutBtn')?.addEventListener('click', ()=>{
+        currentUser = null;
+        showToast('تم تسجيل الخروج','info');
+        setAppMode('login');
+      });
+      $('#themeToggleBtn')?.addEventListener('click', toggleTheme);
+
+      // بحث/فلترة السائقين
+      $('#searchDriver')?.addEventListener('input', ()=> loadDrivers());
+      $('#filterNeighborhood')?.addEventListener('change', ()=> loadDrivers());
+
+      // زر الرجوع من التسجيل
+      $('#backToLoginBtn')?.addEventListener('click', ()=> setAppMode('login'));
+
+      // زر تحديث الإحصائيات
+      $('#refreshHomeStats')?.addEventListener('click', async () => {
+        const btn = $('#refreshHomeStats');
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري التحديث...';
+        await loadMyStats();
+        await heartbeat();
+        btn.textContent = '🔄 تحديث الإحصائيات';
+        btn.disabled = false;
+        showToast('تم تحديث الإحصائيات', 'success');
+      });
+      setupTraineeIdHints();
+      setupSupportFab();
+    }
+          // ====== ساند للسكن (rent) ======
+      function telHref(raw=''){
+        const s = normalizePhoneKSA(raw);      // دالة موجودة عندك
+        return s ? `tel:+${s}` : '#';
+      }
+
+      // شكل البطاقة لكل مالك
+      function housingCard(row){
+        const seq  = sanitizeStr(row.seq ?? row['التسلسل'] ?? '');
+        const name = sanitizeStr(row.owner ?? row['اسم المالك'] ?? '');
+        const ph   = sanitizeStr(row.phone ?? row['رقم الجوال'] ?? '');
+        const gov  = sanitizeStr(row.governorate ?? row['المحافظة'] ?? '');
+        const hood = sanitizeStr(row.neighborhood ?? row['الحي'] ?? '');
+
+        return `
+          <div class="driver-card" style="margin-bottom:10px">
+            <div class="driver-info">
+              <div class="driver-details">
+                <h3>${name || '—'}</h3>
+                <p>التسلسل: <strong>${seq || '-'}</strong></p>
+                <p>المحافظة: ${gov || '-'}</p>
+                <p>الحي: ${hood || '-'}</p>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                ${ph ? `<a class="btn btn-contact" href="${telHref(ph)}">📞 اتصال</a>` : '<span class="status-pending">لا يوجد رقم</span>'}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderHousingTabs(data){
+        const tabsWrap = document.getElementById('housingTabs');
+        const panels   = document.getElementById('housingPanels');
+        if(!tabsWrap || !panels) return;
+
+        // تجميع حسب المحافظة
+        const byGov = new Map();
+        (Array.isArray(data) ? data : []).forEach(r=>{
+          const gov = sanitizeStr(r.governorate ?? r['المحافظة'] ?? 'أخرى') || 'أخرى';
+          if(!byGov.has(gov)) byGov.set(gov, []);
+          byGov.get(gov).push(r);
+        });
+
+        tabsWrap.innerHTML = '';
+        panels.innerHTML = '';
+
+        const govs = Array.from(byGov.keys()).sort((a,b)=> a.localeCompare(b, 'ar'));
+
+        govs.forEach((gov, idx)=>{
+          const tid = `hgov_${idx}`;
+
+          // زر تبويب للمحافظة
+          const btn = document.createElement('button');
+          btn.className = 'tab' + (idx===0 ? ' active' : '');
+          btn.type = 'button';
+          btn.dataset.tab = tid;
+          btn.textContent = gov;
+          tabsWrap.appendChild(btn);
+
+          // المحتوى الخاص بهذه المحافظة
+          const panel = document.createElement('div');
+          panel.className = 'content' + (idx===0 ? ' active' : '');
+          panel.id = tid;
+          panel.innerHTML = byGov.get(gov).map(housingCard).join('') || `
+            <div class="alert alert-info">لا توجد عروض في هذه المحافظة حالياً</div>`;
+          panels.appendChild(panel);
+        });
+
+        // تبديل تبويبات السكن
+        tabsWrap.querySelectorAll('.tab').forEach(b=>{
+          b.addEventListener('click', ()=>{
+            tabsWrap.querySelectorAll('.tab').forEach(x=> x.classList.toggle('active', x===b));
+            panels.querySelectorAll('.content').forEach(sec=>{
+              const active = (sec.id === b.dataset.tab);
+              sec.classList.toggle('active', active);
+              sec.setAttribute('aria-hidden', active ? 'false' : 'true');
+            });
+          });
+        });
+      }
+
+      async function loadHousing(){
+        try{
+          const {data} = await fetchWithCache('getRent', {}, {ttl: 60000});
+          renderHousingTabs(Array.isArray(data) ? data : []);
+        }catch(e){
+          const panels = document.getElementById('housingPanels');
+          if(panels){
+            panels.innerHTML = `<div class="alert alert-error">تعذر تحميل بيانات السكن</div>`;
+          }
+        }
+      }
+
+
+    // ===== شاشة المقدمة =====
+    async function startApp(){
+      const startBtn = document.getElementById('startBtn');
+      const loader   = document.getElementById('introLoader');
+      startBtn?.addEventListener('click', async ()=>{
+        try{
+          startBtn.disabled = true;
+          loader?.classList.add('show');
+          await loadConfig();
+          restoreTheme();
+          try{
+            await heartbeat();
+            setConnStatus('online');
+          }catch{
+            setConnStatus('offline');
+          }
+          // جاهزية الواجهة
+          document.documentElement.classList.add('app-ready');
+          setAppMode('login');
+          setupUIEvents();
+          // تحديث دوري للإحصائيات
+          if(requestsAutoTimer) clearInterval(requestsAutoTimer);
+          requestsAutoTimer = setInterval(heartbeat, 60000);
+        }catch{
+          showToast('تعذر بدء التطبيق — تحقق من الإعدادات','error');
+        }finally{
+          loader?.classList.remove('show');
+          startBtn.disabled = false;
+        }
+      });
+    }
+
+    // تشغيل
+    document.addEventListener('DOMContentLoaded', ()=>{
+      try{
+        // لو كان المستخدم قد دخل سابقاً (مستقبلاً يمكن استخدام تخزين آمن)
+        // حالياً نبدأ من شاشة المقدمة
+        startApp();
+      }catch(e){
+        console.error(e);
+      }
+    });
   </script>
-  <div id="toastWrap" style="position:fixed;inset-inline-start:20px;bottom:20px;z-index:9999;display:flex;flex-direction:column;gap:10px"></div>
 </body>
 </html>
