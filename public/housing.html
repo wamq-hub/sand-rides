@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ساند للسكن – صفحة عامة</title>
+  <style>
+ :root{
+  --tvtc-blue:#1e3c72; --tvtc-teal:#00a49a; --tvtc-navy:#0b1f3a;
+  --bg-grad:linear-gradient(135deg,var(--tvtc-blue),var(--tvtc-teal));
+  --card-bg:#fff; --text:#1f2937; --muted:#495057; --border:#e9ecef;
+}
+
+.dark{
+  --bg-grad:linear-gradient(135deg,#0f172a,#0b1f3a);
+  --card-bg:#111827; --text:#e5e7eb; --muted:#cbd5e1; --border:#374151;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Cairo','Tajawal','Segoe UI',system-ui,sans-serif;
+  background:var(--bg-grad);
+  color:var(--text);
+  margin:0;
+  padding:20px;
+  min-height:100vh;
+}
+
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  background:var(--card-bg);
+  border-radius:14px;
+  box-shadow:0 16px 32px rgba(0,0,0,.12);
+  overflow:hidden;
+}
+
+/* هيدر محسّن */
+.header{
+  background:linear-gradient(135deg,var(--tvtc-navy),var(--tvtc-blue));
+  color:#fff;
+  padding:20px;
+  text-align:center;
+  position:relative;
+}
+
+.header-content{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.header h1{
+  margin:0;
+  font-size:clamp(1.4rem, 3vw, 1.8rem);
+  font-weight:800;
+}
+
+.header-badge{
+  display:inline-block;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.2);
+  padding:4px 12px;
+  border-radius:999px;
+  font-size:0.8rem;
+  font-weight:700;
+}
+
+.lead{
+  color:var(--muted);
+  text-align:center;
+  padding:14px 20px;
+  line-height:1.6;
+  background:rgba(248,249,250,.5);
+  border-bottom:1px solid var(--border);
+}
+
+/* بحث وفلترة */
+.filters{
+  padding:14px 20px;
+  background:#f8f9fa;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.search-box{
+  flex:1;
+  min-width:200px;
+  padding:10px 14px;
+  border:2px solid var(--border);
+  border-radius:10px;
+  font-size:0.95rem;
+  transition:border 0.2s;
+}
+
+.search-box:focus{
+  outline:none;
+  border-color:var(--tvtc-blue);
+}
+
+.filter-select{
+  padding:10px 14px;
+  border:2px solid var(--border);
+  border-radius:10px;
+  font-weight:700;
+  background:white;
+  cursor:pointer;
+}
+
+/* شارة حالة أنيقة */
+.status-badge{
+  position: fixed;
+  bottom: 20px;
+  inset-inline-start: 20px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1f2937;
+  transition: all 0.3s ease;
+}
+
+.dark .status-badge{
+  background: rgba(17, 24, 39, 0.95);
+  color: #e5e7eb;
+}
+
+.status-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse{
+  0%, 100%{ opacity: 1; transform: scale(1); }
+  50%{ opacity: 0.6; transform: scale(1.2); }
+}
+
+.status-dot.online{
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.status-dot.offline{
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.status-dot.loading{
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+/* إخفاء الشارة بعد نجاح الاتصال */
+.status-badge.hidden{
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+@media (max-width: 768px){
+  .status-badge{
+    bottom: 80px;
+    inset-inline-start: 10px;
+    font-size: 0.75rem;
+    padding: 8px 12px;
+  }
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  animation:pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse{
+  0%, 100%{ opacity:1; }
+  50%{ opacity:0.5; }
+}
+
+.on{background:#22c55e}.off{background:#ef4444}.wait{background:#f59e0b}
+
+/* تبويبات */
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  background:#f8f9fa;
+  border-bottom:2px solid #dee2e6;
+  padding:12px 16px;
+}
+
+.tab{
+  border:0;
+  border-radius:999px;
+  background:#fff;
+  cursor:pointer;
+  padding:10px 18px;
+  font-weight:700;
+  transition:all 0.2s;
+  border:2px solid transparent;
+}
+
+.tab:hover{
+  background:#e9ecef;
+}
+
+.tab.active{
+  background:#2c5aa0;
+  color:#fff;
+  border-color:#2c5aa0;
+}
+
+.tab .count{
+  display:inline-block;
+  background:rgba(0,0,0,.1);
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:0.75rem;
+  margin-inline-start:6px;
+}
+
+.tab.active .count{
+  background:rgba(255,255,255,.2);
+}
+
+/* المحتوى */
+.content{
+  padding:20px;
+  min-height:400px;
+}
+
+.panel{
+  display:none;
+  animation:fadeIn 0.3s ease-out;
+}
+
+.panel.active{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:14px;
+}
+
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+/* بطاقات محسّنة */
+.card{
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  background:linear-gradient(135deg,rgba(248,249,250,.3),var(--card-bg));
+  transition:all 0.25s;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.card:hover{
+  border-color:#2c5aa0;
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.card h3{
+  margin:0;
+  color:#2c5aa0;
+  font-size:1.1rem;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.card h3::before{
+  content:'🏠';
+  font-size:1.3rem;
+}
+
+.card-info{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  color:var(--muted);
+  font-size:0.9rem;
+}
+
+.card-info-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.card-info-item strong{
+  color:var(--text);
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  background:linear-gradient(135deg,#2196f3,#1976d2);
+  color:#fff;
+  text-decoration:none;
+  padding:10px 16px;
+  border-radius:10px;
+  font-weight:800;
+  transition:all 0.2s;
+  margin-top:auto;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 14px rgba(33,150,243,.3);
+}
+
+.no-phone{
+  background:#fff3cd;
+  color:#856404;
+  padding:8px 12px;
+  border-radius:8px;
+  font-weight:700;
+  text-align:center;
+  border:1px solid #ffeaa7;
+}
+
+/* حالة فارغة */
+.empty-state{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+}
+
+.empty-state-icon{
+  font-size:4rem;
+  margin-bottom:16px;
+  opacity:0.5;
+}
+
+.empty-state h3{
+  color:var(--text);
+  margin-bottom:8px;
+}
+
+/* زر الرجوع */
+.back{
+  display:block;
+  text-align:center;
+  margin:16px auto;
+  padding:12px 20px;
+  color:#2c5aa0;
+  font-weight:800;
+  text-decoration:none;
+  border-radius:10px;
+  transition:background 0.2s;
+}
+
+.back:hover{
+  background:rgba(44,90,160,.1);
+}
+
+/* زر الثيم */
+.theme-toggle{
+  position:absolute;
+  top:16px;
+  inset-inline-end:16px;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:0.85rem;
+  transition:all 0.2s;
+}
+
+.theme-toggle:hover{
+  background:rgba(255,255,255,.25);
+}
+
+/* استجابة للجوال */
+@media (max-width: 768px){
+  body{ padding:10px; }
+  
+  .header{ padding:16px 12px; }
+  
+  .theme-toggle{
+    top:10px;
+    inset-inline-end:10px;
+    padding:6px 10px;
+    font-size:0.75rem;
+  }
+  
+  .filters{
+    flex-direction:column;
+    padding:12px;
+  }
+  
+  .search-box, .filter-select{
+    width:100%;
+  }
+  
+  .tabs{
+    padding:10px;
+    gap:6px;
+  }
+  
+  .tab{
+    padding:8px 12px;
+    font-size:0.85rem;
+  }
+  
+  .panel.active{
+    grid-template-columns:1fr;
+  }
+  
+  .content{
+    padding:14px;
+  }
+}
+ 
+
+/* Footer محسّن */
+.site-footer{
+  background: linear-gradient(135deg, rgba(30, 60, 114, 0.05), rgba(0, 164, 154, 0.05));
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.footer-content{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 100%;
+}
+
+.footer-logo{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-icon{
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.footer-text{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-text strong{
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-text span{
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.4;
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+}
+
+.footer-institute{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.institute-badge{
+  background: linear-gradient(135deg, var(--tvtc-blue), var(--tvtc-teal));
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(30, 60, 114, 0.2);
+}
+
+.version{
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+@media (max-width: 768px){
+  .footer-content{
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-logo{
+    flex-direction: column;
+  }
+  
+  .footer-text{
+    align-items: center;
+  }
+  
+  .footer-institute{
+    align-items: center;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <button class="theme-toggle" id="themeToggle">🌙 الوضع الداكن</button>
+    <div class="header-content">
+      <h1>🏨 ساند للسكن</h1>
+      <span class="header-badge">صفحة عامة للجميع</span>
+    </div>
+  </header>
+
+  <p class="lead">
+    تعرض هذه الصفحة أرقام ملاك الشقق والغرف في المحافظات للتواصل المباشر.
+    لا تحتاج لتسجيل دخول. يُنصح بالتأكد من التفاصيل قبل الاتفاق.
+  </p>
+
+  <!-- بطاقة الرجوع -->
+<div style="padding:20px; background:#f8f9fa;">
+  <div style="max-width:100%; margin:0 auto;">
+    <div class="card" style="text-align:center; padding:20px; background:linear-gradient(135deg, rgba(30,60,114,0.05) 0%, rgba(0,164,154,0.05) 100%); border:2px solid #1e3c72;">
+      <div style="margin-bottom:12px; color:#1e3c72; font-size:1.1rem; font-weight:700;">
+        📍 أنت الآن في قسم ساند للسكن
+      </div>
+      <a href="./" style="display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#1e3c72,#00a49a); color:#fff; text-decoration:none; padding:12px 24px; border-radius:10px; font-weight:800; font-size:1.05rem; transition:all 0.2s;">
+        <span style="font-size:1.3rem;">⬅️</span>
+        <span>الرجوع إلى صفحة ساند الرئيسية</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+  <!-- بحث وفلترة -->
+  <div class="filters">
+    <input 
+      type="text" 
+      class="search-box" 
+      id="searchBox" 
+      placeholder="🔍 ابحث بالاسم، الحي أو المحافظة..."
+    >
+    <select class="filter-select" id="filterGov">
+      <option value="">جميع المحافظات</option>
+    </select>
+  </div>
+
+
+    <!-- شارة حالة النظام -->
+    <div class="status-badge" id="statusBadge">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">جاري التحميل...</span>
+    </div>
+
+  <!-- تبويبات المحافظات -->
+  <nav class="tabs" id="housingTabs"></nav>
+  
+  <div class="content">
+    <div id="housingPanels"></div>
+  </div>
+
+  
+  <!-- Footer محسّن -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <span class="footer-icon">🏛️</span>
+        <div class="footer-text">
+          <strong>مبادرة من</strong>
+          <span>وحدة الخدمات الإرشادية وتطوير وكالة ضبط الجودة</span>
+        </div>
+      </div>
+      <div class="footer-institute">
+        <span class="institute-badge">الكلية التقنية بحقل</span>
+        <span class="version">النسخة 1.0</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</div>
+
+  <script>
+let GOOGLE_SCRIPT_URL = '';
+let API_KEY = '';
+let allData = []; // تخزين جميع البيانات للبحث
+
+// حالة الاتصال
+// حالة الاتصال المحسّنة
+  function setConn(state){
+    const badge = document.getElementById('statusBadge');
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    
+    if(!badge || !dot || !txt) return;
+    
+    dot.classList.remove('online','offline','loading');
+    
+    if(state === 'on'){
+      dot.classList.add('online');
+      txt.textContent = 'النظام جاهز';
+      // إخفاء الشارة بعد 2 ثانية
+      setTimeout(() => badge.classList.add('hidden'), 2000);
+    } else if(state === 'off'){
+      dot.classList.add('offline');
+      txt.textContent = 'خطأ في الاتصال';
+      badge.classList.remove('hidden');
+    } else {
+      dot.classList.add('loading');
+      txt.textContent = 'جاري التحميل...';
+      badge.classList.remove('hidden');
+    }
+  }
+
+function sanitizeStr(s){ return String(s||'').replace(/[\u200E\u200F\u202A-\u202E]/g,'').trim(); }
+function normalizeDigits(s=''){ 
+  const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'}; 
+  return String(s).replace(/[٠-٩۰-۹]/g,ch=>map[ch]||ch); 
+}
+
+function normalizePhoneKSA(raw=''){
+  const s = normalizeDigits(String(raw)).replace(/\s+/g,'').replace(/[^\d+]/g,'');
+  if(!s) return '';
+  if(/^(\+)?9665\d{8}$/.test(s)) return s.replace(/^\+/, '');
+  if(/^05\d{8}$/.test(s)) return '966' + s.slice(1);
+  if(/^5\d{8}$/.test(s)) return '966' + s;
+  if(/^009665\d{8}$/.test(s)) return s.replace(/^00/, '');
+  return '';
+}
+
+function telHref(raw=''){ 
+  const s=normalizePhoneKSA(raw); 
+  return s?`tel:+${s}`:'#'; 
+}
+
+async function loadConfig(){
+  const res = await fetch('config.json?ts='+Date.now(),{cache:'no-store'});
+  const txt = await res.text();
+  const cfg = JSON.parse(txt);
+  GOOGLE_SCRIPT_URL = sanitizeStr(cfg?.GOOGLE_SCRIPT_URL || cfg?.SCRIPT_URL || cfg?.scriptUrl || '');
+  API_KEY = sanitizeStr(cfg?.API_KEY || cfg?.apiKey || cfg?.defaultApiKey || '');
+}
+
+async function sendToGoogleSheets(action,data){
+  setConn('wait');
+  const resp = await fetch(GOOGLE_SCRIPT_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action,data, ...(API_KEY?{key:API_KEY}:{}) }),
+    mode:'cors', cache:'no-store', credentials:'omit'
+  });
+  const json = await resp.json();
+  setConn('on');
+  return json;
+}
+
+// بطاقة واحدة
+function card(row){
+  const seq  = sanitizeStr(row.seq ?? row['التسلسل'] ?? '');
+  const name = sanitizeStr(row.owner ?? row['اسم المالك'] ?? '');
+  const ph   = sanitizeStr(row.phone ?? row['رقم الجوال'] ?? '');
+  const gov  = sanitizeStr(row.governorate ?? row['المحافظة'] ?? '');
+  const hood = sanitizeStr(row.neighborhood ?? row['الحي'] ?? '');
+  
+  return `
+    <div class="card">
+      <h3>${name || 'بدون اسم'}</h3>
+      <div class="card-info">
+        <div class="card-info-item">
+          <span>📍</span>
+          <span><strong>المحافظة:</strong> ${gov || '-'}</span>
+        </div>
+        <div class="card-info-item">
+          <span>🏘️</span>
+          <span><strong>الحي:</strong> ${hood || '-'}</span>
+        </div>
+        ${seq ? `
+        <div class="card-info-item">
+          <span>#️⃣</span>
+          <span><strong>التسلسل:</strong> ${seq}</span>
+        </div>
+        ` : ''}
+      </div>
+      ${ph ? 
+        `<a class="btn" href="${telHref(ph)}">📞 اتصال مباشر</a>` : 
+        `<div class="no-phone">⚠️ لا يوجد رقم جوال</div>`
+      }
+    </div>`;
+}
+
+// رسم الواجهة
+function render(data){
+  const tabs = document.getElementById('housingTabs');
+  const panels = document.getElementById('housingPanels');
+  const filterGov = document.getElementById('filterGov');
+  
+  const byGov = new Map();
+  data.forEach(r=>{
+    const g = sanitizeStr(r.governorate ?? r['المحافظة'] ?? 'أخرى') || 'أخرى';
+    if(!byGov.has(g)) byGov.set(g,[]);
+    byGov.get(g).push(r);
+  });
+  
+  tabs.innerHTML=''; 
+  panels.innerHTML='';
+  filterGov.innerHTML = '<option value="">جميع المحافظات</option>';
+  
+  const govs = Array.from(byGov.keys()).sort((a,b)=>a.localeCompare(b,'ar'));
+  
+  govs.forEach((g,i)=>{
+    const id='gov_'+i;
+    const count = byGov.get(g).length;
+    
+    // زر التبويب
+    const b=document.createElement('button');
+    b.className='tab'+(i===0?' active':'');
+    b.innerHTML = `${g} <span class="count">${count}</span>`;
+    b.dataset.tab=id;
+    tabs.appendChild(b);
+    
+    // خيار الفلتر
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = `${g} (${count})`;
+    filterGov.appendChild(opt);
+    
+    // المحتوى
+    const p=document.createElement('div'); 
+    p.className='panel'+(i===0?' active':''); 
+    p.id=id;
+    
+    const items = byGov.get(g);
+    if(items.length){
+      p.innerHTML = items.map(card).join('');
+    } else {
+      p.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🏚️</div>
+          <h3>لا توجد عروض</h3>
+          <p>لا توجد عروض سكن في هذه المحافظة حالياً</p>
+        </div>`;
+    }
+    
+    panels.appendChild(p);
+  });
+  
+  // أحداث التبويبات
+  tabs.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      tabs.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x===btn));
+      panels.querySelectorAll('.panel').forEach(p=>{
+        p.classList.toggle('active', p.id===btn.dataset.tab);
+      });
+    });
+  });
+}
+
+// البحث والفلترة
+function setupFilters(){
+  const search = document.getElementById('searchBox');
+  const filterGov = document.getElementById('filterGov');
+  
+  function applyFilters(){
+    const searchTerm = search.value.toLowerCase().trim();
+    const selectedGov = filterGov.value;
+    
+    let filtered = allData;
+    
+    // فلترة حسب المحافظة
+    if(selectedGov){
+      filtered = filtered.filter(r => {
+        const gov = sanitizeStr(r.governorate ?? r['المحافظة'] ?? '');
+        return gov === selectedGov;
+      });
+    }
+    
+    // بحث
+    if(searchTerm){
+      filtered = filtered.filter(r => {
+        const name = sanitizeStr(r.owner ?? r['اسم المالك'] ?? '').toLowerCase();
+        const gov = sanitizeStr(r.governorate ?? r['المحافظة'] ?? '').toLowerCase();
+        const hood = sanitizeStr(r.neighborhood ?? r['الحي'] ?? '').toLowerCase();
+        return name.includes(searchTerm) || gov.includes(searchTerm) || hood.includes(searchTerm);
+      });
+    }
+    
+    render(filtered);
+  }
+  
+  search.addEventListener('input', applyFilters);
+  filterGov.addEventListener('change', applyFilters);
+}
+
+// الثيم
+function setupTheme(){
+  const btn = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('sand_housing_theme');
+  
+  if(saved === 'dark'){
+    document.documentElement.classList.add('dark');
+    btn.textContent = '☀️ الوضع الفاتح';
+  }
+  
+  btn.addEventListener('click', ()=>{
+    const isDark = document.documentElement.classList.toggle('dark');
+    btn.textContent = isDark ? '☀️ الوضع الفاتح' : '🌙 الوضع الداكن';
+    localStorage.setItem('sand_housing_theme', isDark ? 'dark' : 'light');
+  });
+}
+
+// البدء
+(async ()=>{
+  try{
+    await loadConfig();
+    const {data} = await sendToGoogleSheets('getRent', {});
+    allData = Array.isArray(data) ? data : [];
+    render(allData);
+    setupFilters();
+    setupTheme();
+  }catch(e){
+    setConn('off');
+    document.getElementById('housingPanels').innerHTML =
+      `<div class="empty-state">
+        <div class="empty-state-icon">⚠️</div>
+        <h3>تعذر تحميل البيانات</h3>
+        <p>حدث خطأ أثناء الاتصال بقاعدة البيانات</p>
+      </div>`;
+  }
+})();
+  </script>
+</body>
+</html>
