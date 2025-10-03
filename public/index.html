@@ -212,6 +212,62 @@
     .content.active{display:block}
     @keyframes fade{from{opacity:.3;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
+
+          /* ===== Fix footer overlap & stacking ===== */
+      :root{
+        --footer-h: 58px;     /* سيُستبدل تلقائياً بالارتفاع الحقيقي عبر JS */
+        --statsbar-h: 60px;
+        --z-footer: 9000;
+        --z-stats: 9050;
+        --z-fab: 10050;       /* أعلى من الفوتر */
+        --z-tip: 10060;       /* للتولتيب/الشارة */
+      }
+
+      body{
+        min-height: 100dvh;
+        padding-bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 14px) !important;
+      }
+
+      /* الفوتر */
+      .site-footer{
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: var(--z-footer);
+        height: var(--footer-h);
+        padding-block: 8px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom,0));
+      }
+
+      /* شريط الإحصائيات يركب فوق الفوتر مباشرة */
+      .stats-bottom-bar{
+        position: fixed;
+        left: 0; right: 0;
+        bottom: calc(var(--footer-h) + env(safe-area-inset-bottom,0) + 6px);
+        z-index: var(--z-stats);
+      }
+
+      /* الزر العائم/التلميح/الشارة فوق الجميع وتتحرك آلياً */
+      .support-fab{
+        position: fixed;
+        inset-inline-end: 18px;
+        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 10px) !important;
+        z-index: var(--z-fab);
+      }
+      .welcome-support-tooltip,
+      .status-badge{
+        position: fixed;
+        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 14px) !important;
+        z-index: var(--z-tip);
+      }
+
+      /* ضمان عدم قصّ أي منبثقات */
+      .container{ overflow: visible; }
+
+      /* للموبايل: قياسات أخف */
+      @media (max-width: 768px){
+        :root{ --footer-h: 56px; --statsbar-h: 64px; }
+      }
+
     /* نماذج */
     .form-group{margin-bottom:16px}
     .form-group label{color:var(--muted)}
@@ -702,6 +758,43 @@
         .header-sub .user-title{ justify-content: center; }
         .header-sub .stats-bar{ justify-content: center; }
         .header-sub .logout-btn{ justify-self: center; }
+                /* تصغير الخطوط */
+        body{ font-size: 14px; }
+
+        /* تقليل padding البطاقات */
+        .driver-card, .request-card{ padding: 12px; }
+
+        /* تصغير الأزرار */
+        .btn{ padding: 10px 14px; font-size: 0.9rem; }
+
+        /* ضبط شريط الإحصائيات السفلي */
+        .stats-bottom-bar{
+          flex-direction: column;
+          padding: 8px;
+          gap: 8px;
+        }
+
+        .stat-glass-card{
+          width: 100%;
+          padding: 10px;
+        }
+
+        /* رفع الشارة فوق كل شيء */
+        .status-badge{
+          bottom: 160px !important;
+          font-size: 0.75rem;
+          padding: 6px 10px;
+        }
+
+        /* رفع زر الدعم */
+        .support-fab{
+          bottom: 140px !important;
+          inset-inline-end: 10px;
+        }
+
+        /* تصغير الفوتر */
+        .site-footer{ padding: 6px 10px; }
+        .footer-text span{ font-size: 0.7rem; }
       }
 
 
@@ -729,8 +822,93 @@
     }
 
 
+    /* ====== Mobile-friendly patch ====== */
+
+      /* ارتفاعات قياسية قابلة للتبديل */
+      @media (max-width: 768px){
+        :root{
+          --footer-h: 50px;
+          --statsbar-h: 120px; /* أطول لأنه عمودي الآن */
+        }
+      }
+
+      /* خط سائل للجوال: أصغر على الشاشات الصغيرة، لا يتجاوز 18px على الكبيرة */
+      html{ font-size: clamp(14px, 2.4vw, 18px); }
+
+      /* اعتمد على 100dvh بدلاً من 100vh (يعالج شريط العنوان في iOS) */
+      body{
+        min-height: 100dvh;
+        /* بدلاً من padding-bottom الثابت الكبير:
+          احجز مساحة آمنة تحت لعدم تغطية العناصر الثابتة + النوتش */
+        padding-bottom: calc(
+          var(--footer-h) + var(--statsbar-h)
+          + env(safe-area-inset-bottom, 0px) + 14px
+        ) !important;
+      }
+
+      /* لا تقطع العناصر الطولية داخل الحاوية على الجوال */
+      .container{
+        margin: 0 auto calc(var(--statsbar-h) + 12px) auto;
+        overflow: visible; /* كان hidden ويسبب قصّ عناصر منبثقة/قوائم */
+      }
+
+      /* ثبّت ارتفاع الفوتر، وأضف مساحة آمنة للنوتش */
+      .site-footer{
+        height: var(--footer-h);
+        padding-block: 8px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      }
+
+      /* ارفع شريط الإحصائيات فوق الفوتر */
+      .stats-bottom-bar{
+        bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px) + 6px);
+      }
+
+      /* ارفع زر الدعم وشارة الحالة فوق كل شيء بأسفل الشاشة */
+      .support-fab{
+        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom, 0px) + 10px);
+      }
+      .status-badge{
+        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom, 0px) + 14px);
+      }
+
+      /* حقول الإدخال على iOS >= 16px لتفادي التكبير التلقائي */
+      .form-control{
+        font-size: 16px;
+        min-height: 44px; /* هدف لمس مريح */
+      }
+
+      /* أزرار التبويبات أصغر قليلًا على الشاشات الصغيرة */
+      .tabs .tab{
+        font-size: clamp(14px, 3.6vw, 16px);
+        padding: 12px 10px;
+      }
+
+      /* العناوين الكبيرة تصير مرنة بدل الثابت */
+      #homeContent h2,
+      .brand-text .logo{
+        font-size: clamp(1.3rem, 4.5vw, 2rem);
+      }
+
+      /* منع تداخل الـ tooltip مع الحواف على الجوال الضيق */
+      .welcome-support-tooltip{
+        max-width: min(80vw, 280px);
+      }
+
+      /* صور وشعارات تتكيّف دائمًا */
+      img{ max-width: 100%; height: auto; }
+
     .tabs .tab[data-tab="housing"]{ display:none !important; }
 
+       /*إصلاح العرض الأفقي الزائد (Horizontal Scroll)*/
+        html, body{
+          overflow-x: hidden;
+          max-width: 100vw;
+        }
+
+        * {
+          max-width: 100%;
+        }
 
           /* شريط الإحصائيات السفلي */
       .stats-bottom-bar{
@@ -835,7 +1013,7 @@
       position: fixed;
       bottom: 20px;
       inset-inline-start: 20px;
-      z-index: 1000;
+      z-index: 10000;
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -1979,27 +2157,33 @@
 
       try{
         $('#loginBtn').disabled = true;
-        const resp = await sendToGoogleSheets('verifyUser', { traineeId:id });
-        if (resp?.success && resp?.data){
-          currentUser = resp.data; // {name, traineeId, userType, ...}
+        const resp = await sendToGoogleSheets('verifyUser', { traineeId: id });
+
+        const valid =
+          resp && resp.success === true &&
+          resp.data && typeof resp.data === 'object' &&
+          typeof resp.data.traineeId === 'string' &&
+          resp.data.traineeId.replace(/\s/g,'') === id &&
+          isValidUserType(resp.data.userType) &&
+          typeof resp.data.name === 'string' && resp.data.name.trim().length > 0;
+
+        if (valid) {
+          currentUser = resp.data;
           setUserHeaderUI(currentUser);
           setAppMode('app');
-          document.documentElement.classList.add('app-ready'); // إغلاق شاشة المقدمة
+          document.documentElement.classList.add('app-ready');
           showToast('مرحباً بك في ساند','success');
-          // تحميل أولي
-          heartbeat();
-          loadDrivers();
-          loadRequests();
-          loadMyStats();
-        }else{
-          if(allowSelfRegister){
+          heartbeat(); loadDrivers(); loadRequests(); loadMyStats();
+        } else {
+          if (allowSelfRegister) {
             showToast('لم يتم العثور على رقمك — أكمل التسجيل','warn');
             setAppMode('register_only');
             $('#traineeId').value = id;
-          }else{
+          } else {
             showToast('رقمك غير موجود — تواصل مع المنشأة','error');
           }
         }
+
       }catch{
         showToast('تعذر التحقق من الرقم','error');
       }finally{
