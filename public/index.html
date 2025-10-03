@@ -225,26 +225,34 @@
 
       body{
         min-height: 100dvh;
-        padding-bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 14px) !important;
+        padding-bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 20px) !important;
       }
 
-      /* الفوتر */
-      .site-footer{
-        position: fixed;
-        left: 0; right: 0; bottom: 0;
-        z-index: var(--z-footer);
-        height: var(--footer-h);
-        padding-block: 8px;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom,0));
-      }
 
-      /* شريط الإحصائيات يركب فوق الفوتر مباشرة */
+      /* ✅ شريط الإحصائيات ثابت في المحتوى */
       .stats-bottom-bar{
-        position: fixed;
-        left: 0; right: 0;
-        bottom: calc(var(--footer-h) + env(safe-area-inset-bottom,0) + 6px);
-        z-index: var(--z-stats);
+        position: static;  /* ثابت في التدفق الطبيعي */
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       }
+
+      /* ✅ الفوتر ثابت في نهاية الصفحة */
+      .site-footer{
+        position: static;  /* ثابت في التدفق الطبيعي */
+        background: linear-gradient(135deg, rgba(30, 60, 114, 0.05), rgba(0, 164, 154, 0.05));
+        border-top: 1px solid var(--border);
+        padding: 20px;
+        margin-top: 20px;
+      }
+
 
       /* الزر العائم/التلميح/الشارة فوق الجميع وتتحرك آلياً */
       .support-fab{
@@ -911,21 +919,7 @@
         }
 
           /* شريط الإحصائيات السفلي */
-      .stats-bottom-bar{
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 70px; /* فوق الفوتر */
-        z-index: 9000;
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        padding: 10px 20px;
-        background: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(12px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-      }
+
 
       .dark .stats-bottom-bar{
         background: rgba(17, 24, 39, 0.85);
@@ -977,15 +971,15 @@
       /* استجابة للجوال */
       @media (max-width: 768px){
         .stats-bottom-bar{
-          bottom: 75px;
-          flex-wrap: wrap;
-          padding: 10px 8px;
-          gap: 6px;
+          flex-direction: column;  /* رص عمودي */
+          padding: 12px;
+          gap: 8px;
+          margin-top: 16px;
         }
         
         .stat-glass-card{
-          flex: 1 1 100%;
-          padding: 8px 12px;
+          width: 100%;  /* عرض كامل */
+          padding: 10px 12px;
         }
         
         .stat-icon{
@@ -998,6 +992,14 @@
         
         .stat-glass-card .stat-label{
           font-size: 0.8rem;
+        }
+        
+        .site-footer{
+          padding: 14px 10px;
+        }
+        
+        body{
+          padding-bottom: 20px;
         }
       }
            
@@ -1346,7 +1348,34 @@
 
         <button type="submit" class="btn" id="registerBtn">تسجيل في ساند</button>
       </form>
+ 
     </section>
+               <!-- شريط الإحصائيات الثابت -->
+    <div class="stats-bottom-bar" id="statsBottomBar" aria-live="polite">
+      <div class="stat-glass-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalUsersBottom">-</div>
+          <div class="stat-label">مستخدم نشط</div>
+        </div>
+      </div>
+      
+      <div class="stat-glass-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalTripsBottom">-</div>
+          <div class="stat-label">رحلة مكتملة</div>
+        </div>
+      </div>
+      
+      <div class="stat-glass-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+          <div class="stat-number" id="satisfactionBottom">-</div>
+          <div class="stat-label">تقييم الخدمة</div>
+        </div>
+      </div>
+    </div>
   </div><!-- /container -->
 
 
@@ -1383,32 +1412,7 @@
 
   <div id="toastWrap" role="region" aria-live="polite" aria-atomic="true" style="position:fixed;inset-inline-start:20px;bottom:90px;z-index:10050;display:flex;flex-direction:column;gap:10px"></div>
 
-      <!-- شريط الإحصائيات الثابت -->
-    <div class="stats-bottom-bar" id="statsBottomBar" aria-live="polite">
-      <div class="stat-glass-card">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalUsersBottom">-</div>
-          <div class="stat-label">مستخدم نشط</div>
-        </div>
-      </div>
-      
-      <div class="stat-glass-card">
-        <div class="stat-icon">🚗</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalTripsBottom">-</div>
-          <div class="stat-label">رحلة مكتملة</div>
-        </div>
-      </div>
-      
-      <div class="stat-glass-card">
-        <div class="stat-icon">⭐</div>
-        <div class="stat-content">
-          <div class="stat-number" id="satisfactionBottom">-</div>
-          <div class="stat-label">تقييم الخدمة</div>
-        </div>
-      </div>
-    </div>
+
 
     <footer class="site-footer">
       <div class="footer-content">
