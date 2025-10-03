@@ -12,8 +12,12 @@
 }
 
 .dark{
-  --bg-grad:linear-gradient(135deg,#0f172a,#0b1f3a);
-  --card-bg:#111827; --text:#e5e7eb; --muted:#cbd5e1; --border:#374151;
+  --bg-grad:linear-gradient(135deg,#0f172a 0%,#0b1f3a 100%);
+  --card-bg:#111827;
+  --text:#e5e7eb;
+  --muted:#cbd5e1;
+  --border:#374151;
+  --header-grad:linear-gradient(135deg,#0b1f3a 0%,#1e3c72 100%);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -43,6 +47,10 @@ body{
   padding:20px;
   text-align:center;
   position:relative;
+}
+
+.dark .header{
+  background:linear-gradient(135deg,#0b1f3a 0%,#1e3c72 100%);
 }
 
 .header-content{
@@ -169,6 +177,108 @@ body{
   opacity: 0;
   transform: translateY(10px);
   pointer-events: none;
+}
+
+
+.dark .card{
+  background:linear-gradient(135deg,rgba(17,24,39,.3),var(--card-bg));
+  border-color:#374151;
+}
+
+.dark .card:hover{
+  border-color:#4b5563;
+}
+
+.dark .card h3{
+  color:#60a5fa;
+}
+
+.dark .filters{
+  background:#1f2937;
+}
+
+.dark .search-box,
+.dark .filter-select{
+  background:#111827;
+  border-color:#374151;
+  color:#e5e7eb;
+}
+
+.dark .tabs{
+  background:#1f2937;
+  border-bottom-color:#374151;
+}
+
+.dark .tab{
+  background:#111827;
+  color:#e5e7eb;
+}
+
+.dark .tab:hover{
+  background:#1f2937;
+}
+
+.dark .tab.active{
+  background:#1e3c72;
+  color:#fff;
+}
+
+.dark .lead{
+  background:rgba(17,24,39,.5);
+  color:#cbd5e1;
+}
+
+.dark .no-phone{
+  background:#92400e;
+  color:#fde68a;
+  border-color:#b45309;
+}
+
+.dark .empty-state{
+  color:#9ca3af;
+}
+
+.dark .empty-state h3{
+  color:#e5e7eb;
+}
+
+.dark .back-card{
+  background:linear-gradient(135deg,rgba(15,23,42,0.5),rgba(11,31,58,0.5));
+  border-color:#374151;
+}
+
+.dark .back-card-title{
+  color:#60a5fa;
+}
+
+.dark .site-footer{
+  background:linear-gradient(135deg,rgba(15,23,42,0.5),rgba(11,31,58,0.5));
+  border-top-color:#374151;
+}
+
+.dark .footer-text strong{
+  color:#9ca3af;
+}
+
+.dark .footer-text span{
+  color:#e5e7eb;
+}
+
+.dark .version{
+  color:#6b7280;
+}
+
+.dark .status-badge{
+  background:rgba(17,24,39,0.95);
+  color:#e5e7eb;
+}
+
+.dark .loading-state p{
+  color:#e5e7eb;
+}
+
+.dark .loading-hint{
+  color:#9ca3af !important;
 }
 
 @media (max-width: 768px){
