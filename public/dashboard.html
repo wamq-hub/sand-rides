@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة المتابعة - ساند</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --tvtc-blue:#1e3c72;
+      --tvtc-teal:#00a49a;
+      --tvtc-navy:#0b1f3a;
+      --bg-grad:linear-gradient(135deg,var(--tvtc-blue) 0%,var(--tvtc-teal) 100%);
+      --card-bg:#fff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --success:#10b981;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+    }
+
+    .dark{
+      --bg-grad:linear-gradient(135deg,#0f172a 0%,#0b1f3a 100%);
+      --card-bg:#111827;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:#374151;
+    }
+
+    body{
+      font-family:'Cairo','Tajawal',sans-serif;
+      background:var(--bg-grad);
+      min-height:100vh;
+      color:var(--text);
+      padding:20px;
+    }
+
+    .container{ max-width:1400px; margin:0 auto; }
+
+    /* شاشة تسجيل الدخول */
+    .login-screen{ display:flex; align-items:center; justify-content:center; min-height:80vh; }
+    .login-card{
+      background:var(--card-bg);
+      padding:40px; border-radius:16px;
+      box-shadow:0 20px 40px rgba(0,0,0,0.15);
+      width:100%; max-width:450px; text-align:center;
+    }
+    .login-card h1{ margin-bottom:10px; color:var(--tvtc-blue); font-size:1.8rem; }
+    .login-card p{ margin-bottom:30px; color:var(--muted); }
+
+    .form-group{ margin-bottom:20px; text-align:right; }
+    .form-group label{ display:block; margin-bottom:8px; font-weight:700; color:var(--muted); }
+    .form-control{
+      width:100%; padding:12px; border:2px solid var(--border);
+      border-radius:8px; font-size:1rem; background:var(--card-bg); color:var(--text);
+      transition:border 0.2s;
+    }
+    .form-control:focus{ outline:none; border-color:var(--tvtc-blue); }
+
+    .btn{
+      width:100%; padding:14px; border:none; border-radius:8px;
+      font-weight:800; font-size:1rem; cursor:pointer; transition:all 0.2s;
+    }
+    .btn-primary{ background:linear-gradient(135deg,var(--tvtc-blue),var(--tvtc-teal)); color:#fff; }
+    .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,0.15); }
+    .btn-primary:disabled{ opacity:0.6; cursor:not-allowed; transform:none; }
+
+    .alert{ padding:12px; border-radius:8px; margin-bottom:20px; font-weight:700; }
+    .alert-error{ background:#fee; color:#c00; border:1px solid #fcc; }
+
+    /* اللوحة */
+    .dashboard{ display:none; }
+    .dashboard.active{ display:block; }
+
+    .header{
+      background:var(--card-bg); padding:20px; border-radius:12px; margin-bottom:20px;
+      display:flex; justify-content:space-between; align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
+    .header-info h1{ font-size:1.5rem; margin-bottom:5px; }
+    .header-info p{ color:var(--muted); font-size:0.9rem; }
+
+    .header-actions{ display:flex; gap:10px; }
+    .btn-secondary{
+      background:#6b7280; color:#fff; padding:10px 16px; border:none; border-radius:8px;
+      cursor:pointer; font-weight:700; width:auto;
+    }
+    .btn-danger{ background:var(--danger); color:#fff; }
+
+    /* بطاقات الإحصائيات */
+    .stats-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-bottom:30px;
+    }
+    .stat-card{
+      background:var(--card-bg); padding:24px; border-radius:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid var(--tvtc-blue);
+    }
+    .stat-card.success{ border-left-color:var(--success); }
+    .stat-card.warning{ border-left-color:var(--warning); }
+    .stat-card.danger{ border-left-color:var(--danger); }
+    .stat-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .stat-title{ color:var(--muted); font-size:0.9rem; font-weight:600; }
+    .stat-icon{ font-size:1.8rem; opacity:0.8; }
+    .stat-value{ font-size:2.2rem; font-weight:800; color:var(--text); line-height:1; }
+
+    /* الجداول */
+    .table-container{
+      background:var(--card-bg); border-radius:12px; padding:20px; margin-bottom:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
+    .table-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .table-header h2{ font-size:1.3rem; }
+    table{ width:100%; border-collapse:collapse; }
+    th,td{ padding:12px; text-align:right; border-bottom:1px solid var(--border); }
+    th{ background:#f9fafb; font-weight:700; color:var(--muted); font-size:0.85rem; }
+    .dark th{ background:#1f2937; }
+
+    .badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; }
+    .badge-success{ background:#d1fae5; color:#065f46; }
+    .badge-warning{ background:#fef3c7; color:#92400e; }
+    .badge-danger{ background:#fee2e2; color:#991b1b; }
+
+    .loading{ text-align:center; padding:40px; }
+    .spinner{
+      border:4px solid #f3f3f3; border-top:4px solid var(--tvtc-blue); border-radius:50%;
+      width:50px; height:50px; animation:spin 1s linear infinite; margin:0 auto 20px;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    @media (max-width:768px){
+      body{ padding:10px; }
+      .header{ flex-direction:column; gap:15px; text-align:center; }
+      .stats-grid{ grid-template-columns:1fr; }
+      table{ font-size:0.85rem; }
+      th,td{ padding:8px; }
+    }
+  </style>
+
+  <!-- مكتبات التصدير -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <h1>🔐 لوحة المتابعة</h1>
+      <p>مخصصة للمدربين والإدارة فقط</p>
+
+      <div id="loginError"></div>
+
+      <form id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="staffId">رقم الموظف/المدرب</label>
+          <input type="text" id="staffId" class="form-control" placeholder="مثال: T001" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="loginBtn">دخول إلى اللوحة</button>
+      </form>
+            <!-- أسفل فورم تسجيل الدخول في login-card -->
+        <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
+        <!-- يوديك لواجهة ساند (ويتخطى شاشة المقدّمة لو أضفت دعم ?start=1 في index.html) -->
+        <a href="index.html?start=1"
+            class="btn-secondary"
+            style="text-decoration:none; display:inline-flex; align-items:center; gap:6px">
+            🏠 الرجوع الى مبادرة ساند للمتدربين
+        </a>
+    </div>
+  </div>
+
+  <!-- اللوحة الرئيسية -->
+  <div class="dashboard" id="dashboard">
+    <div class="container" id="dashboardContainer">
+      <!-- الهيدر -->
+      <div class="header">
+        <div class="header-info">
+          <h1>لوحة المتابعة - ساند</h1>
+          <p>مرحباً، <strong id="instructorName">...</strong> (<span id="instructorRole">...</span>)</p>
+        </div>
+        <div class="header-actions">
+          <a href="./" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;gap:5px">🏠 الرئيسية</a>
+            <a href="index.html" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;gap:6px">🏠 ساند</a>
+          <button class="btn-secondary" onclick="toggleTheme(this)">🌙</button>
+          <button class="btn-secondary" onclick="exportToPDF()" id="exportBtn">📥 تصدير PDF</button>
+          <button class="btn-secondary" onclick="refreshData()">🔄 تحديث</button>
+          <button class="btn-secondary btn-danger" onclick="logout()">تسجيل خروج</button>
+        </div>
+      </div>
+
+      <!-- بطاقات الإحصائيات -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">إجمالي المستخدمين</span>
+            <span class="stat-icon">👥</span>
+          </div>
+          <div class="stat-value" id="totalUsers">-</div>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-header">
+            <span class="stat-title">السائقين النشطين</span>
+            <span class="stat-icon">🚗</span>
+          </div>
+          <div class="stat-value" id="totalDrivers">-</div>
+        </div>
+
+        <div class="stat-card warning">
+          <div class="stat-header">
+            <span class="stat-title">طلبات معلقة</span>
+            <span class="stat-icon">⏳</span>
+          </div>
+          <div class="stat-value" id="pendingRequests">-</div>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-header">
+            <span class="stat-title">طلبات مقبولة</span>
+            <span class="stat-icon">✅</span>
+          </div>
+          <div class="stat-value" id="acceptedRequests">-</div>
+        </div>
+
+        <div class="stat-card danger">
+          <div class="stat-header">
+            <span class="stat-title">طلبات مرفوضة</span>
+            <span class="stat-icon">❌</span>
+          </div>
+          <div class="stat-value" id="rejectedRequests">-</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">متوسط التقييم</span>
+            <span class="stat-icon">⭐</span>
+          </div>
+          <div class="stat-value" id="avgRating">-</div>
+        </div>
+      </div>
+
+      <!-- جدول الطلبات المعلقة -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>📋 الطلبات المعلقة</h2>
+        </div>
+        <div id="pendingTable">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>جاري التحميل...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- جدول السائقين -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>🚗 السائقين المسجلين</h2>
+        </div>
+        <div id="driversTable">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>جاري التحميل...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== متغيرات عامة =====
+  let GOOGLE_SCRIPT_URL = '';
+  let API_KEY = '';
+  let currentInstructor = null;
+
+  // ===== مظهر داكن/فاتح =====
+  function toggleTheme(btn){
+    document.documentElement.classList.toggle('dark');
+    if (btn) {
+      btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+    }
+  }
+
+  // ===== تصدير PDF (html2canvas → صور داخل PDF) =====
+  async function exportToPDF(){
+    const btn = document.getElementById('exportBtn');
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التصدير...';
+
+    try{
+      // تأكد أن خطوط الويب جاهزة قبل الالتقاط (يحسّن ظهور النص العربي)
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p','mm','a4');
+
+      // المحتوى المراد تصديره
+      const target = document.getElementById('dashboardContainer');
+      if (!target) throw new Error('لم يتم العثور على محتوى اللوحة');
+
+      // التقط الشاشة بدقة أعلى
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      });
+
+      // حساب المقاسات
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+
+      const pxToMm = (px) => px * 25.4 / 96; // تقريب 96dpi
+      const imgWmm = pxToMm(canvas.width);
+      const imgHmm = pxToMm(canvas.height);
+
+      const ratio = Math.min(pageW / imgWmm, pageH / imgHmm);
+      const renderW = imgWmm * ratio;
+      const renderH = imgHmm * ratio;
+
+      // تقسيم على صفحات إذا كان المحتوى طويل
+      let remainingH = renderH;
+      let srcYmm = 0;
+
+      while (remainingH > 0) {
+        const sliceHmm = Math.min(remainingH, pageH);
+
+        const sliceCanvas = document.createElement('canvas');
+        const sliceHpixels = Math.round(sliceHmm / 25.4 * 96 / ratio);
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHpixels;
+
+        const sctx = sliceCanvas.getContext('2d');
+        const srcYpx = Math.round(srcYmm / 25.4 * 96 / ratio);
+
+        sctx.drawImage(
+          canvas,
+          0, srcYpx, canvas.width, sliceHpixels,
+          0, 0, sliceCanvas.width, sliceCanvas.height
+        );
+
+        const sliceImg = sliceCanvas.toDataURL('image/png');
+
+        if (srcYmm > 0) doc.addPage();
+
+        const x = (pageW - renderW) / 2;
+        doc.addImage(sliceImg, 'PNG', x, 0, renderW, Math.min(pageH, sliceHmm));
+
+        remainingH -= pageH;
+        srcYmm += pageH;
+      }
+
+      const now = new Date();
+      doc.save(`sand-report-${now.toISOString().split('T')[0]}.pdf`);
+      showToast('تم تصدير التقرير بنجاح','success');
+    }catch(err){
+      console.error('Export error:', err);
+      showToast('فشل التصدير','error');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = '📥 تصدير PDF';
+    }
+  }
+
+  // ===== Toast =====
+  function showToast(msg, type='info'){
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:${type==='success' ? '#10b981' : type==='error' ? '#ef4444' : '#6b7280'};
+      color:white; padding:12px 24px; border-radius:8px; font-weight:700; z-index:10000;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(()=>{ toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); },3000);
+  }
+
+  // ===== تحميل الإعدادات =====
+  async function loadConfig(){
+    try{
+      const res = await fetch('config.json?ts=' + Date.now(), { cache:'no-store' });
+      const cfg = await res.json();
+      GOOGLE_SCRIPT_URL = cfg.GOOGLE_SCRIPT_URL || cfg.SCRIPT_URL || '';
+      API_KEY = cfg.API_KEY || cfg.apiKey || '';
+    }catch(e){
+      console.error('Config error:', e);
+    }
+  }
+
+  // ===== طلبات للخادم =====
+  async function sendRequest(action, data = {}){
+    const resp = await fetch(GOOGLE_SCRIPT_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain' },
+      body: JSON.stringify({ action, data, ...(API_KEY ? { key: API_KEY } : {}) })
+    });
+    return await resp.json();
+  }
+
+  // ===== تسجيل الدخول =====
+  document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+
+    const staffId = document.getElementById('staffId').value.trim();
+    const btn = document.getElementById('loginBtn');
+    const errorDiv = document.getElementById('loginError');
+
+    if (!staffId){
+      errorDiv.innerHTML = '<div class="alert alert-error">أدخل رقم الموظف</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'جاري التحقق...';
+    errorDiv.innerHTML = '';
+
+    try{
+      const resp = await sendRequest('verifyInstructor', { staffId });
+      if (resp.success && resp.data.authorized){
+        currentInstructor = resp.data;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        document.getElementById('instructorName').textContent = resp.data.name;
+        document.getElementById('instructorRole').textContent = (resp.data.role === 'admin' ? 'مدير' : 'مراقب');
+        loadDashboardData();
+      }else{
+        errorDiv.innerHTML = '<div class="alert alert-error">⛔ غير مصرح لك بالدخول</div>';
+      }
+    }catch(e){
+      errorDiv.innerHTML = '<div class="alert alert-error">خطأ في الاتصال</div>';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'دخول إلى اللوحة';
+    }
+  });
+
+  // ===== تحميل بيانات اللوحة =====
+  async function loadDashboardData(){
+    try{
+      const resp = await sendRequest('getDashboardStats');
+      if (resp.success){
+        const data = resp.data || {};
+        document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+        document.getElementById('totalDrivers').textContent = data.totalDrivers || 0;
+        document.getElementById('pendingRequests').textContent = data.pendingRequests || 0;
+        document.getElementById('acceptedRequests').textContent = data.acceptedRequests || 0;
+        document.getElementById('rejectedRequests').textContent = data.rejectedRequests || 0;
+        document.getElementById('avgRating').textContent = data.avgRating || '-';
+      }
+      loadPendingRequests();
+      loadDriversList();
+    }catch(e){
+      console.error('Load error:', e);
+    }
+  }
+
+  // ===== الطلبات المعلقة =====
+  async function loadPendingRequests(){
+    const container = document.getElementById('pendingTable');
+    try{
+      const resp = await sendRequest('getPendingRequests');
+      if (resp.success && resp.data.length){
+        let html = '<table><thead><tr><th>رقم الطلب</th><th>المتدرب</th><th>السائق</th><th>الأيام</th><th>الحالة</th></tr></thead><tbody>';
+        resp.data.forEach(r=>{
+          html += `<tr>
+            <td>#${r.id}</td>
+            <td>${r.passengerName}</td>
+            <td>${r.driverName}</td>
+            <td>${Array.isArray(r.selectedDays) ? r.selectedDays.join('، ') : '-'}</td>
+            <td><span class="badge badge-warning">معلق</span></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      }else{
+        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات معلقة</p>';
+      }
+    }catch(e){
+      container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
+    }
+  }
+
+  // ===== السائقون =====
+  async function loadDriversList(){
+    const container = document.getElementById('driversTable');
+    try{
+      const resp = await sendRequest('getDrivers');
+      if (resp.success && resp.data.length){
+        let html = '<table><thead><tr><th>الاسم</th><th>رقم المتدرب</th><th>الحي</th><th>التقييم</th><th>الحالة</th></tr></thead><tbody>';
+        resp.data.forEach(d=>{
+          const status = d.status === 'متاح' ? 'متاح' : 'محجوز';
+          const badge  = d.status === 'متاح' ? 'badge-success' : 'badge-warning';
+          html += `<tr>
+            <td>${d.name}</td>
+            <td>${d.traineeId}</td>
+            <td>${d.neighborhood || '-'}</td>
+            <td>${d.rating || 0} ⭐</td>
+            <td><span class="badge ${badge}">${status}</span></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      }else{
+        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا يوجد سائقين</p>';
+      }
+    }catch(e){
+      container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
+    }
+  }
+
+  // ===== تحديث البيانات =====
+  function refreshData(){ loadDashboardData(); }
+
+  // ===== تسجيل الخروج =====
+  function logout(){
+    currentInstructor = null;
+    document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('staffId').value = '';
+  }
+
+  // ===== بدء التشغيل =====
+  loadConfig();
+</script>
+</body>
+</html>
