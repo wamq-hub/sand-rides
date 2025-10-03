@@ -179,7 +179,19 @@
         margin: 0 auto;                /* توسيط داخل العمود الأوسط */
       }
     .brand-stack{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
-    .brand-logo-tall{height:72px;width:auto;display:block;margin:0 auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+    .brand-logo-tall{
+      height: 120px;  /* ✅ زيادة الحجم الكلي */
+      width: 120px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 0px;  /* ✅ زيادة المسافة الداخلية */
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
     .brand-text .logo{font-size:1.6rem;line-height:1.1;font-weight:800;white-space:nowrap}
     .brand-text .tagline{font-size:.95rem;opacity:.9;line-height:1.1}
 
@@ -501,6 +513,12 @@
         opacity: 1;
       }
 
+
+      .dark .brand-logo-tall{
+        background: #ffffff;  /* خلفية بيضاء حتى في الوضع الداكن */
+        border-color: rgba(30, 60, 114, 0.5);  /* إطار بلون المؤسسة */
+      }
+
       /* تأثير نبض للزر لجذب الانتباه */
         @keyframes fabPulse{
           0%, 100%{ 
@@ -679,6 +697,16 @@
       margin-bottom: 16px;
       animation: slideDown 0.5s ease-out;
       font-weight: 700;
+    }
+
+
+    @media (max-width: 768px){
+      .brand-logo-tall{
+        height: 72px;  /* حجم مناسب للجوال */
+        width: 72px;
+        padding: 8px;
+        border-width: 2px;
+      }
     }
     @keyframes slideDown{
       from{ opacity: 0; transform: translateY(-20px); }
@@ -1438,7 +1466,7 @@
               <span class="ico">✉️</span><span>البريد</span>
             </a>
           </div>
-    <button class="main" type="button" title="الدعم">🛟</button>
+    <button class="main" type="button" title="الدعم">👤</button>
   </div>
 
   <div id="toastWrap" role="region" aria-live="polite" aria-atomic="true" style="position:fixed;inset-inline-start:20px;bottom:90px;z-index:10050;display:flex;flex-direction:column;gap:10px"></div>
@@ -1883,7 +1911,7 @@
       wrap.innerHTML = '';
       list.forEach(d=>{
         const phone = getWaPhoneFromRecord(d);
-        const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند".`) : '';
+        const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند" عن طريق الكلية التقنية بحقل.`) : '';
         const card = document.createElement('div');
         card.className = 'driver-card';
         card.innerHTML = `
