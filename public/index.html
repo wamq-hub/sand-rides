@@ -225,7 +225,7 @@
 
       body{
         min-height: 100dvh;
-        padding-bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 20px) !important;
+          padding-bottom: 20px;
       }
 
 
@@ -490,15 +490,17 @@
       }
     /* فوتر ثابت */
     .site-footer{
-      position: fixed;
+      position: static;
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(11, 31, 58, 0.98));
+      background: linear-gradient(135deg, rgba(30, 60, 114, 0.05), rgba(0, 164, 154, 0.05));
       backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--border);
       z-index: 9999;
-      padding: 8px 16px;  /* تقليل المسافة الداخلية */
+      padding: 20px;
+      margin-top: 20px;
+
     }
 
     .footer-content{
@@ -874,10 +876,11 @@
 
       /* ارفع زر الدعم وشارة الحالة فوق كل شيء بأسفل الشاشة */
       .support-fab{
-        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom, 0px) + 10px);
+        bottom: 20px;
       }
+
       .status-badge{
-        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom, 0px) + 14px);
+        bottom: 20px;
       }
 
       /* حقول الإدخال على iOS >= 16px لتفادي التكبير التلقائي */
