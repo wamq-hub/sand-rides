@@ -234,7 +234,7 @@
         position: static;  /* ثابت في التدفق الطبيعي */
         margin-top: 20px;
         padding: 10px 20px;
-        background: rgba(15, 23, 42, 0.75);
+        background: linear-gradient(135deg, rgba(30, 60, 114, 0.85), rgba(0, 164, 154, 0.85));  /* ✅ ألوان المؤسسة */
         backdrop-filter: blur(12px);
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
@@ -255,18 +255,6 @@
 
 
       /* الزر العائم/التلميح/الشارة فوق الجميع وتتحرك آلياً */
-      .support-fab{
-        position: fixed;
-        inset-inline-end: 18px;
-        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 10px) !important;
-        z-index: var(--z-fab);
-      }
-      .welcome-support-tooltip,
-      .status-badge{
-        position: fixed;
-        bottom: calc(var(--footer-h) + var(--statsbar-h) + env(safe-area-inset-bottom,0) + 14px) !important;
-        z-index: var(--z-tip);
-      }
 
       /* ضمان عدم قصّ أي منبثقات */
       .container{ overflow: visible; }
@@ -352,9 +340,64 @@
     html.app-ready #intro-screen{display:none!important}
 
     /* زر دعم عائم */
-    .support-fab{position:fixed;inset-inline-end:18px;bottom:84px;z-index:9998}
-    .support-fab button.main{width:52px;height:52px;border:0;border-radius:999px;cursor:pointer;background:linear-gradient(135deg,#1e3c72 0%,#00a49a 100%);color:#fff;font-size:22px;box-shadow:0 12px 28px rgba(0,0,0,.18)}
-    .support-menu{position:absolute;inset-inline-end:0;bottom:62px;display:none;gap:8px;flex-direction:column;align-items:flex-end}
+    .support-fab{
+        position: fixed;
+        inset-inline-end: 18px;
+        bottom: 20px;  /* ✅ ثابت دائماً */
+        z-index: 10050; /* ✅ فوق كل شيء */
+      }
+
+      /* للجوال: رفع الزر أعلى قليلاً */
+      @media (max-width: 768px){
+        .support-fab{
+          bottom: 80px;  /* فوق الفوتر مباشرة */
+          inset-inline-end: 15px;
+        }
+      }
+      .support-fab button.main{
+        width: 60px;    /* ✅ أكبر قليلاً */
+        height: 60px;
+        border: 0;
+        border-radius: 999px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #1e3c72 0%, #00a49a 100%);
+        color: #fff;
+        font-size: 26px;  /* ✅ أيقونة أكبر */
+        box-shadow: 0 12px 28px rgba(0,0,0,.18);
+        transition: all 0.3s ease;
+      }
+
+      .support-fab button.main:hover{
+        transform: scale(1.1);  /* ✅ تكبير عند المرور */
+      }
+
+      /* للجوال: حجم أصغر */
+      @media (max-width: 768px){
+        .support-fab button.main{
+          width: 52px;
+          height: 52px;
+          font-size: 22px;
+        }
+      }
+      /* القائمة تظهر فوق الزر وبشكل مزاح يمينًا قليلاً */
+      .support-menu{
+        position: absolute;
+
+        /* محاذاة للجهة الصحيحة في RTL (يمين العنصر) + بديل فيزيائي */
+        inset-inline-start: 0;  /* في RTL = يمين */
+        right: 0;               /* فallback للمتصفحات القديمة */
+
+        /* فوق الزر بمسافة ثابتة بدل أرقام عشوائية */
+        bottom: calc(100% + 10px); /* تظهر فوق الزر بـ 10px */
+        /* إزاحة بسيطة لليمين */
+        transform: translateX(20px);
+
+        display: none;
+        gap: 8px;
+        flex-direction: column;
+        align-items: flex-end;
+        z-index: 10060; /* تأكد أنها فوق الفوتر */
+      }
     .support-menu a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;background:#111827;border-radius:999px;padding:10px 12px;font-weight:800;box-shadow:0 10px 20px rgba(0,0,0,.15)}
     .support-menu a .ico{width:26px;height:26px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.12)}
     .support-menu a.wa{background:#128c7e}
@@ -364,9 +407,9 @@
       /* تلميح ترحيبي محسّن */
       .welcome-support-tooltip{
         position: fixed;
-        inset-inline-end: 82px;
-        bottom: 94px;
-        z-index: 9999;
+        inset-inline-end: 90px;
+        bottom: 30px;  /* ✅ بجانب الزر */
+        z-index: 10060; /* فوق كل شيء */
         background: linear-gradient(135deg, #1e3c72 0%, #00a49a 100%);
         color: #fff;
         padding: 0;
@@ -376,7 +419,7 @@
         transform: translateX(20px) scale(0.9);
         pointer-events: none;
         transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        max-width: 260px;
+        max-width: 280px;
         animation: tooltipPulse 2s ease-in-out infinite;
       }
 
@@ -458,12 +501,32 @@
         opacity: 1;
       }
 
+      /* تأثير نبض للزر لجذب الانتباه */
+        @keyframes fabPulse{
+          0%, 100%{ 
+            box-shadow: 0 12px 28px rgba(0,0,0,.18); 
+          }
+          50%{ 
+            box-shadow: 0 12px 38px rgba(30, 60, 114, .5), 0 0 0 8px rgba(30, 60, 114, .2); 
+          }
+        }
+
+        .support-fab button.main{
+          animation: fabPulse 3s ease-in-out infinite;
+        }
+
+        /* إيقاف النبض عند المرور أو الفتح */
+        .support-fab.open button.main,
+        .support-fab button.main:hover{
+          animation: none;
+        }
+
       /* للجوال */
       @media (max-width: 768px){
         .welcome-support-tooltip{
-          inset-inline-end: 72px;
-          bottom: 154px;
-          max-width: 220px;
+          inset-inline-end: 85px;
+          bottom: 85px;
+          max-width: 200px;
         }
         
         .tooltip-content{
@@ -761,52 +824,17 @@
 
       /* استجابة للجوال: رصّ عمودي مع توسيط الكل */
       @media (max-width:768px){
-        .header-sub{
-          grid-template-columns: 1fr;
-          row-gap: 8px;
-        }
-        .header-sub .user-title{ justify-content: center; }
-        .header-sub .stats-bar{ justify-content: center; }
-        .header-sub .logout-btn{ justify-self: center; }
-                /* تصغير الخطوط */
-        body{ font-size: 14px; }
-
-        /* تقليل padding البطاقات */
-        .driver-card, .request-card{ padding: 12px; }
-
-        /* تصغير الأزرار */
-        .btn{ padding: 10px 14px; font-size: 0.9rem; }
-
-        /* ضبط شريط الإحصائيات السفلي */
-        .stats-bottom-bar{
-          flex-direction: column;
-          padding: 8px;
-          gap: 8px;
-        }
-
-        .stat-glass-card{
-          width: 100%;
-          padding: 10px;
-        }
-
-        /* رفع الشارة فوق كل شيء */
-        .status-badge{
-          bottom: 160px !important;
-          font-size: 0.75rem;
-          padding: 6px 10px;
-        }
-
-        /* رفع زر الدعم */
         .support-fab{
-          bottom: 140px !important;
-          inset-inline-end: 10px;
+          bottom: 80px !important;  /* ✅ موضع ثابت ومرئي */
+          z-index: 10050;
         }
-
-        /* تصغير الفوتر */
-        .site-footer{ padding: 6px 10px; }
-        .footer-text span{ font-size: 0.7rem; }
+        
+        .welcome-support-tooltip{
+          bottom: 85px !important;
+          inset-inline-end: 85px !important;
+          z-index: 10060;
+        }
       }
-
 
     @media (max-width:768px){
       body{
@@ -933,16 +961,16 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 12px;
         padding: 8px 14px;
         transition: all 0.3s ease;
       }
 
       .stat-glass-card:hover{
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.25);
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
       }
@@ -1402,14 +1430,14 @@
           </div>
         </div>
       </div>
-    <div class="support-menu" aria-hidden="true">
-      <a class="wa" target="_blank" rel="noopener" href="https://wa.me/9665XXXXXXXX?text=%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D8%AF%D8%B9%D9%85%20%D9%81%D9%86%D9%8A">
-        <span class="ico">💬</span><span>واتساب</span>
-      </a>
-      <a class="mail" href="mailto:someone@example.com?subject=%D8%AF%D8%B9%D9%85%20%D9%81%D9%86%D9%8A">
-        <span class="ico">✉️</span><span>البريد</span>
-      </a>
-    </div>
+          <div class="support-menu" aria-hidden="true">
+            <a class="wa" target="_blank" rel="noopener" href="https://wa.me/966144510265?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D9%86%D8%A7%20%D9%85%D9%86%20%D9%85%D9%86%D8%B5%D8%A9%20%D8%B3%D8%A7%D9%86%D8%AF%20%D9%84%D9%84%D9%85%D8%AA%D8%AF%D8%B1%D8%A8%D9%8A%D9%86%20%D9%88%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%3A%20">
+              <span class="ico">💬</span><span>واتساب</span>
+            </a>
+            <a class="mail" href="mailto:a.alotaibi9@tvtc.gov.sa?subject=%D8%AF%D8%B9%D9%85%20%D9%81%D9%86%D9%8A%20-%20%D9%85%D9%86%D8%B5%D8%A9%20%D8%B3%D8%A7%D9%86%D8%AF&body=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%0A%0A%D8%A3%D9%86%D8%A7%20%D9%85%D9%86%20%D9%85%D9%86%D8%B5%D8%A9%20%D8%B3%D8%A7%D9%86%D8%AF%20%D9%84%D9%84%D9%85%D8%AA%D8%AF%D8%B1%D8%A8%D9%8A%D9%86%20%D9%88%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%3A%0A%0A%5B%D8%A7%D8%B0%D9%83%D8%B1%20%D9%85%D8%B4%D9%83%D9%84%D8%AA%D9%83%20%D9%87%D9%86%D8%A7%5D%0A%0A%D8%B4%D9%83%D8%B1%D8%A7%D9%8B">
+              <span class="ico">✉️</span><span>البريد</span>
+            </a>
+          </div>
     <button class="main" type="button" title="الدعم">🛟</button>
   </div>
 
@@ -1591,8 +1619,7 @@
     }
 
     // ===== حالة الاتصال =====
-    const connDot = () => document.getElementById('connDot');
-    const connText = () => document.getElementById('connText');
+
     function setConnStatus(state){
       const badge = document.getElementById('statusBadge');
       const dot = document.getElementById('statusDot');
@@ -1935,23 +1962,35 @@
       let activeCount = 0;
 
       list.forEach(r=>{
-        const st = String(r.status||'pending');
-        if(st==='pending') activeCount++;
-        const cls = st==='accepted' ? 'accepted' : (st==='rejected' ? 'rejected' : '');
+        const stAr = String(r.status || 'معلق').trim(); // 'معلق' | 'مقبول' | 'مرفوض'
+        if(stAr === 'معلق') activeCount++;
+
+        const cls =
+          stAr === 'مقبول' ? 'accepted' :
+          stAr === 'مرفوض' ? 'rejected' : '';
+
+        // الأيام من selectedDays (قد تكون مصفوفة أو نص)
+        const daysArr = Array.isArray(r.selectedDays)
+          ? r.selectedDays
+          : String(r.selectedDays || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+        const stChip =
+          stAr === 'مقبول' ? '<div class="status-accepted">مقبول</div>' :
+          stAr === 'مرفوض' ? '<div class="status-rejected">مرفوض</div>' :
+                              '<div class="status-pending">قيد المراجعة</div>';
+
         const d = document.createElement('div');
         d.className = `request-card ${cls}`;
         d.innerHTML = `
           <div class="request-header">
-            <div class="request-title">طلب #${sanitizeStr(r.id||'-')}</div>
-            <div class="status-${st==='accepted'?'accepted':(st==='rejected'?'rejected':'pending')}">
-              ${st==='accepted'?'مقبول':(st==='rejected'?'مرفوض':'قيد المراجعة')}
-            </div>
+            <div class="request-title">طلب #${(r.id ?? '-')}</div>
+            ${stChip}
           </div>
           <div class="request-details">
-            <p>السائق: <strong>${sanitizeStr(r.driverName || '-')}</strong></p>
-            <p>الأيام: ${Array.isArray(r.days)? r.days.join('، ') : '-'}</p>
-            <p>المدة: ${sanitizeStr(r.duration || '-')} أسبوع</p>
-            ${r.notes? `<p>ملاحظات: ${sanitizeStr(r.notes)}</p>`:''}
+            <p>السائق: <strong>${(r.driverName || '-')}</strong></p>
+            <p>الأيام: ${daysArr.length ? daysArr.join('، ') : '-'}</p>
+            <p>المدة: ${r.duration || '-'} أسبوع</p>
+            ${r.notes ? `<p>ملاحظات: ${r.notes}</p>` : ''}
           </div>
         `;
         host.appendChild(d);
@@ -2035,49 +2074,73 @@
 
     async function submitBooking(ev){
       ev?.preventDefault?.();
-      if(!currentUser){ showToast('سجّل الدخول أولاً','warn'); return; }
+      if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
 
       const driverId = $('#selectedDriver').value;
-      const days = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(i=>i.value);
-      const duration = Number($('#duration').value || 0);
-      const notes = $('#tripNotes').value.trim();
+      const driver   = drivers.find(d => (d.traineeId || d.id) == driverId) || null;
+      let   days     = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(i => i.value);
+      let   duration = Number($('#duration').value || 0);
+      const notes    = $('#tripNotes').value.trim();
 
-      if(!driverId){ showToast('اختر السائق','warn'); return; }
-      if(!days.length){ showToast('اختر على الأقل يوم واحد','warn'); return; }
-      if(!duration){ showToast('اختر المدة','warn'); return; }
+      // ✅ تحققات أقوى
+      if (!driverId || !driver) { showToast('اختر السائق','warn'); return; }
+      days = Array.from(new Set(days)); // إزالة التكرار
+      const allowedDays = (window.DAYS || ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس']);
+      if (!days.length || !days.every(d => allowedDays.includes(d))) {
+        showToast('اختر أيام صحيحة','warn'); return;
+      }
+      duration = Math.max(0, Math.floor(duration));
+      if (!duration) { showToast('اختر المدة','warn'); return; }
 
-      const driver = drivers.find(d => (d.traineeId||d.id) == driverId);
-      const wa = driver ? getWaPhoneFromRecord(driver) : '';
+      // منع النقر المزدوج
+      const btn = $('#bookingBtn');
+      if (btn?.dataset?.busy === '1') return;
+      if (btn) { btn.disabled = true; btn.dataset.busy = '1'; btn.setAttribute('aria-busy','true'); }
+
+      const wa = getWaPhoneFromRecord(driver);
 
       try{
-        $('#bookingBtn').disabled = true;
         const payload = {
-          passengerId: currentUser.traineeId,
-          passengerName: currentUser.name,
-          driverId,
-          days,
+          passengerTraineeId:   currentUser.traineeId,
+          passengerName:        currentUser.name || '',
+          passengerPhone:       currentUser.phone || '',
+          passengerNeighborhood:currentUser.neighborhood || '',
+
+          driverTraineeId: driverId,
+          driverName:      driver.name || '',
+          driverPhone:     driver.phone || '',
+
+          selectedDays: days,
           duration,
-          notes
+          notes,
+          requestDate: new Date().toISOString()
         };
+
         const resp = await sendToGoogleSheets('submitBooking', payload);
-        if(resp?.ok){
-          showToast('تم إرسال الطلب بنجاح','success');
-          // واتساب اختياري
-          if(wa){
+
+        if (resp && resp.success === true) {
+          const newId = resp.data?.id;
+          showToast(newId ? `تم إرسال الطلب #${newId} بنجاح` : 'تم إرسال الطلب بنجاح','success');
+
+          if (wa) {
             const msg = `مرحباً ${driver?.name||''}، أنا ${currentUser.name}. طلبت توصيل (${days.join('، ')}) لمدة ${duration} أسبوع(أسابيع) عبر "ساند".`;
             window.open(buildWaUrl(wa, msg), '_blank', 'noopener');
           }
-          loadRequests();
+
+          await loadRequests();
           document.querySelector('.tab[data-tab="requests"]')?.click();
-        }else{
-          showToast('تعذر حفظ الطلب','error');
+        } else {
+          showToast(resp?.error || 'تعذر حفظ الطلب','error');
         }
-      }catch{
+      } catch (e) {
+        console.error(e);
         showToast('خطأ في الاتصال','error');
-      }finally{
-        $('#bookingBtn').disabled = false;
+      } finally {
+        if (btn) { btn.disabled = false; btn.dataset.busy = '0'; btn.removeAttribute('aria-busy'); }
       }
     }
+
+
 
     // ===== التقييم =====
     function prepareRatingUI(){
@@ -2094,67 +2157,142 @@
 
     async function submitRating(ev){
       ev?.preventDefault?.();
-      if(!currentUser){ showToast('سجّل الدخول أولاً','warn'); return; }
+      if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
+
       const driverId = $('#ratedDriver').value;
       const stars    = Number($('#ratingStars').value || 0);
       const notes    = $('#ratingNotes').value.trim();
 
-      if(!driverId || !stars){ showToast('اختر السائق والتقييم','warn'); return; }
+      if (!driverId || !stars) { showToast('اختر السائق والتقييم','warn'); return; }
+
+      // جلب اسم السائق من القائمة (اختياري لكنه مفيد للتقارير)
+      const driver = (drivers || []).find(d => String(d.traineeId || d.id) === String(driverId)) || {};
+      const driverName = driver.name || driverId;
 
       try{
         $('#ratingBtn').disabled = true;
+
+        // ✅ مفاتيح متوافقة مع السكربت الخلفي (handleSubmitRating)
         const payload = {
-          passengerId: currentUser.traineeId,
-          driverId,
-          stars,
-          notes
+          targetType:        'سائق',                 // نوع الهدف
+          targetName:        driverName,             // اسم السائق
+          targetTraineeId:   driverId,               // رقم السائق
+          raterName:         currentUser.name || '', // اسم المُقيِّم
+          raterTraineeId:    currentUser.traineeId,  // رقم المُقيِّم
+          stars,                                     // 1..5
+          notes                                      // ملاحظات
         };
+
         const resp = await sendToGoogleSheets('submitRating', payload);
-        if(resp?.ok){
+
+        if (resp && resp.success === true) {
           showToast('شكراً لتقييمك','success');
           $('#ratingForm').reset();
-          loadMyStats();
-        }else{
-          showToast('تعذر إرسال التقييم','error');
+          // تحديث بعض الشاشات بعد الإرسال
+          await loadMyStats();
+          if (typeof loadDrivers === 'function') { loadDrivers(); } // لتحديث متوسط تقييم السائق
+        } else {
+          showToast(resp?.error || 'تعذر إرسال التقييم','error');
         }
-      }catch{
+
+      } catch (e) {
+        console.error(e);
         showToast('خطأ في الاتصال','error');
-      }finally{
+
+      } finally {
         $('#ratingBtn').disabled = false;
       }
     }
 
+
+    // ===== التسجيل =====
+
     // ===== التسجيل =====
     async function submitRegistration(ev){
       ev?.preventDefault?.();
+
       const name  = $('#name').value.trim();
-      const id    = normalizeDigits($('#traineeId').value.trim());
+      const idRaw = $('#traineeId').value.trim();
+      const id    = normalizeDigits(idRaw);
       const phone = normalizePhoneKSA($('#phone').value);
       const hood  = $('#neighborhood').value;
       const type  = $('#userType').value;
+      const btn   = $('#registerBtn');
 
-      if(!name || !id || !phone || !hood || !isValidUserType(type)){
-        showToast('أكمل الحقول المطلوبة بشكل صحيح','warn'); return;
+      // ✅ تحققات مسبقة قوية
+      if (!name || name.length < 2){
+        showToast('أدخل الاسم الكامل بشكل صحيح','warn'); 
+        return;
+      }
+      if (!/^\d{6,}$/.test(id)){
+        showToast('رقم المتدرب غير صحيح (أرقام فقط، 6 خانات فأكثر)','warn');
+        return;
+      }
+      if (!isValidPhoneKSA(phone)){
+        showToast('صيغة الجوال غير صحيحة (مثال: 9665XXXXXXXX)','warn');
+        return;
+      }
+      if (!hood){
+        showToast('اختر الحي','warn');
+        return;
+      }
+      if (!isValidUserType?.(type)){
+        showToast('اختر نوع المستخدم (سائق/متدرب)','warn');
+        return;
+      }
+
+      // ⛔️ منع النقر المزدوج
+      if (btn?.dataset?.busy === '1') return;
+      if (btn){
+        btn.disabled = true;
+        btn.dataset.busy = '1';
+        btn.setAttribute('aria-busy','true');
       }
 
       try{
-        $('#registerBtn').disabled = true;
-        const payload = {name, traineeId:id, phone, neighborhood:hood, userType:type};
+        const payload = { name, traineeId:id, phone, neighborhood:hood, userType:type };
         const resp = await sendToGoogleSheets('registerUser', payload);
-        if(resp?.ok){
+
+        // ✅ نجاح تام
+        if (resp && resp.success === true){
           showToast('تم التسجيل بنجاح، يمكنك الدخول الآن','success');
-          // عودة لشاشة الدخول
           setAppMode('login');
           $('#loginTraineeId').value = id;
-        }else{
-          showToast(resp?.error||'تعذر إتمام التسجيل','error');
+          return;
         }
-      }catch{
-        showToast('خطأ في الاتصال','error');
-      }finally{
-        $('#registerBtn').disabled = false;
+
+        // ❌ تفكيك الأخطاء الشائعة القادمة من السكربت الخلفي
+        const err = resp?.error;
+        if (err === 'NOT_IN_ROSTER'){
+          showToast('رقمك غير موجود بقائمة المتدربين','error');
+        } else if (err === 'TRAINEE_NOT_AUTHORIZED'){
+          showToast('رقمك غير مُفعّل بالمؤسسة','error');
+        } else if (err === 'INVALID_PHONE_FORMAT'){
+          showToast('صيغة الجوال غير صحيحة (مثال: 9665XXXXXXXX)','error');
+        } else if (err === 'INVALID_TRAINEE_ID'){
+          showToast('رقم المتدرب غير صالح','error');
+        } else if (err === 'DUPLICATE_USER' || err === 'DUPLICATE_TRAINEE_ID'){
+          showToast('هذا الرقم مسجّل مسبقاً','warn');
+        } else {
+          showToast(err || 'تعذّر إتمام التسجيل','error');
+        }
+
+      } catch (e) {
+        console.error('[register] network/error:', e);
+        const msg = e?.name === 'AbortError' ? 'انتهت المهلة — حاول مجدداً' : 'خطأ في الاتصال';
+        showToast(msg, 'error');
+
+      } finally {
+        // 🔓 استعادة حالة الزر بشكل مضمون
+        if (btn) {
+          btn.disabled = false;
+          btn.dataset.busy = '0';
+          btn.removeAttribute('aria-busy');
+        }
       }
     }
+
+
 
     // ===== تسجيل الدخول =====
     async function doLogin(){
@@ -2165,6 +2303,17 @@
       try{
         $('#loginBtn').disabled = true;
         const resp = await sendToGoogleSheets('verifyUser', { traineeId: id });
+        // 🔒 لو موجود في Roster = Active لكن "مو مسجل" في Users
+        if (resp && resp.success === false && resp.error === 'NOT_REGISTERED_IN_USERS') {
+          setAppMode('register_only');           // افتح شاشة التسجيل فقط
+          $('#traineeId').value = id;            // عبّي رقم المتدرب تلقائياً
+          if (resp.data?.rosterName) {
+            $('#name').value = resp.data.rosterName; // (اختياري) تعبئة الاسم من Roster
+          }
+          showToast('أكمل التسجيل أولاً','warn');
+          return; // امنع أي دخول للتطبيق قبل التسجيل
+        }
+
 
         const valid =
           resp && resp.success === true &&
@@ -2437,6 +2586,8 @@
     // تشغيل
     document.addEventListener('DOMContentLoaded', ()=>{
       try{
+        // ✅ حذف التلميح من التخزين عند كل تحميل للصفحة
+        localStorage.removeItem('sand_support_tip_seen');
         // لو كان المستخدم قد دخل سابقاً (مستقبلاً يمكن استخدام تخزين آمن)
         // حالياً نبدأ من شاشة المقدمة
         startApp();
