@@ -20,7 +20,6 @@
       --warning:#f59e0b;
       --danger:#ef4444;
     }
-
     .dark{
       --bg-grad:linear-gradient(135deg,#0f172a 0%,#0b1f3a 100%);
       --card-bg:#111827;
@@ -36,7 +35,6 @@
       color:var(--text);
       padding:20px;
     }
-
     .container{ max-width:1400px; margin:0 auto; }
 
     /* شاشة تسجيل الدخول */
@@ -49,7 +47,6 @@
     }
     .login-card h1{ margin-bottom:10px; color:var(--tvtc-blue); font-size:1.8rem; }
     .login-card p{ margin-bottom:30px; color:var(--muted); }
-
     .form-group{ margin-bottom:20px; text-align:right; }
     .form-group label{ display:block; margin-bottom:8px; font-weight:700; color:var(--muted); }
     .form-control{
@@ -58,7 +55,6 @@
       transition:border 0.2s;
     }
     .form-control:focus{ outline:none; border-color:var(--tvtc-blue); }
-
     .btn{
       width:100%; padding:14px; border:none; border-radius:8px;
       font-weight:800; font-size:1rem; cursor:pointer; transition:all 0.2s;
@@ -70,7 +66,7 @@
     .alert{ padding:12px; border-radius:8px; margin-bottom:20px; font-weight:700; }
     .alert-error{ background:#fee; color:#c00; border:1px solid #fcc; }
 
-    /* اللوحة */
+    /* الداشبورد */
     .dashboard{ display:none; }
     .dashboard.active{ display:block; }
 
@@ -81,7 +77,6 @@
     }
     .header-info h1{ font-size:1.5rem; margin-bottom:5px; }
     .header-info p{ color:var(--muted); font-size:0.9rem; }
-
     .header-actions{ display:flex; gap:10px; }
     .btn-secondary{
       background:#6b7280; color:#fff; padding:10px 16px; border:none; border-radius:8px;
@@ -158,22 +153,22 @@
           <input type="text" id="staffId" class="form-control" placeholder="مثال: T001" required>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="loginBtn">دخول إلى اللوحة</button>
+        <button type="submit" class="btn btn-primary" id="loginBtn" disabled>دخول إلى اللوحة</button>
       </form>
-            <!-- أسفل فورم تسجيل الدخول في login-card -->
-        <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
-        <!-- يوديك لواجهة ساند (ويتخطى شاشة المقدّمة لو أضفت دعم ?start=1 في index.html) -->
-        <a href="index.html?start=1"
-            class="btn-secondary"
-            style="text-decoration:none; display:inline-flex; align-items:center; gap:6px">
-            🏠 الرجوع الى مبادرة ساند للمتدربين
+
+      <!-- روابط مفيدة -->
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
+        <a href="index.html?start=1" class="btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px">
+          🏠 الرجوع الى مبادرة ساند للمتدربين
         </a>
+      </div>
     </div>
   </div>
 
-  <!-- اللوحة الرئيسية -->
+  <!-- الداشبورد (يظهر فقط بعد تسجيل الدخول) -->
   <div class="dashboard" id="dashboard">
     <div class="container" id="dashboardContainer">
+
       <!-- الهيدر -->
       <div class="header">
         <div class="header-info">
@@ -182,10 +177,10 @@
         </div>
         <div class="header-actions">
           <a href="./" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;gap:5px">🏠 الرئيسية</a>
-            <a href="index.html" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;gap:6px">🏠 ساند</a>
+          <a href="index.html?start=1" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;gap:6px">🏠 ساند</a>
           <button class="btn-secondary" onclick="toggleTheme(this)">🌙</button>
-          <button class="btn-secondary" onclick="exportToPDF()" id="exportBtn">📥 تصدير PDF</button>
-          <button class="btn-secondary" onclick="refreshData()">🔄 تحديث</button>
+          <button class="btn-secondary" id="exportBtn" onclick="exportToPDF()">📥 تصدير PDF</button>
+          <button type="button" class="btn-secondary" onclick="refreshData()">🔄 تحديث</button>
           <button class="btn-secondary btn-danger" onclick="logout()">تسجيل خروج</button>
         </div>
       </div>
@@ -266,6 +261,20 @@
           </div>
         </div>
       </div>
+
+      <!-- جدول المتدربين المحتاجين إلى توصيل -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>👨‍🎓 المتدربون المحتاجون إلى توصيل</h2>
+        </div>
+        <div id="passengersTable">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>جاري التحميل...</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -274,6 +283,7 @@
   let GOOGLE_SCRIPT_URL = '';
   let API_KEY = '';
   let currentInstructor = null;
+  let CONFIG_READY = false;
 
   // ===== مظهر داكن/فاتح =====
   function toggleTheme(btn){
@@ -283,78 +293,42 @@
     }
   }
 
-  // ===== تصدير PDF (html2canvas → صور داخل PDF) =====
+  // ===== تصدير PDF =====
   async function exportToPDF(){
     const btn = document.getElementById('exportBtn');
     if (!btn) return;
-
-    btn.disabled = true;
-    btn.textContent = '⏳ جاري التصدير...';
-
+    btn.disabled = true; btn.textContent = '⏳ جاري التصدير...';
     try{
-      // تأكد أن خطوط الويب جاهزة قبل الالتقاط (يحسّن ظهور النص العربي)
-      if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
-
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('p','mm','a4');
-
-      // المحتوى المراد تصديره
       const target = document.getElementById('dashboardContainer');
       if (!target) throw new Error('لم يتم العثور على محتوى اللوحة');
-
-      // التقط الشاشة بدقة أعلى
-      const canvas = await html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null
-      });
-
-      // حساب المقاسات
+      const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: null });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
-
-      const pxToMm = (px) => px * 25.4 / 96; // تقريب 96dpi
+      const pxToMm = (px) => px * 25.4 / 96;
       const imgWmm = pxToMm(canvas.width);
       const imgHmm = pxToMm(canvas.height);
-
       const ratio = Math.min(pageW / imgWmm, pageH / imgHmm);
       const renderW = imgWmm * ratio;
       const renderH = imgHmm * ratio;
 
-      // تقسيم على صفحات إذا كان المحتوى طويل
-      let remainingH = renderH;
-      let srcYmm = 0;
-
+      let remainingH = renderH, srcYmm = 0;
       while (remainingH > 0) {
         const sliceHmm = Math.min(remainingH, pageH);
-
         const sliceCanvas = document.createElement('canvas');
         const sliceHpixels = Math.round(sliceHmm / 25.4 * 96 / ratio);
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceHpixels;
-
+        sliceCanvas.width = canvas.width; sliceCanvas.height = sliceHpixels;
         const sctx = sliceCanvas.getContext('2d');
         const srcYpx = Math.round(srcYmm / 25.4 * 96 / ratio);
-
-        sctx.drawImage(
-          canvas,
-          0, srcYpx, canvas.width, sliceHpixels,
-          0, 0, sliceCanvas.width, sliceCanvas.height
-        );
-
+        sctx.drawImage(canvas, 0, srcYpx, canvas.width, sliceHpixels, 0, 0, sliceCanvas.width, sliceCanvas.height);
         const sliceImg = sliceCanvas.toDataURL('image/png');
-
         if (srcYmm > 0) doc.addPage();
-
         const x = (pageW - renderW) / 2;
         doc.addImage(sliceImg, 'PNG', x, 0, renderW, Math.min(pageH, sliceHmm));
-
-        remainingH -= pageH;
-        srcYmm += pageH;
+        remainingH -= pageH; srcYmm += pageH;
       }
-
       const now = new Date();
       doc.save(`sand-report-${now.toISOString().split('T')[0]}.pdf`);
       showToast('تم تصدير التقرير بنجاح','success');
@@ -362,10 +336,11 @@
       console.error('Export error:', err);
       showToast('فشل التصدير','error');
     }finally{
-      btn.disabled = false;
-      btn.textContent = '📥 تصدير PDF';
+      btn.disabled = false; btn.textContent = '📥 تصدير PDF';
     }
   }
+
+
 
   // ===== Toast =====
   function showToast(msg, type='info'){
@@ -384,62 +359,87 @@
   async function loadConfig(){
     try{
       const res = await fetch('config.json?ts=' + Date.now(), { cache:'no-store' });
-      const cfg = await res.json();
+      if (!res.ok) throw new Error('CONFIG_NOT_FOUND');
+      const raw = await res.text();
+      if (raw.trim().startsWith('<')) throw new Error('CONFIG_INVALID_FORMAT');
+      const cfg = JSON.parse(raw);
       GOOGLE_SCRIPT_URL = cfg.GOOGLE_SCRIPT_URL || cfg.SCRIPT_URL || '';
       API_KEY = cfg.API_KEY || cfg.apiKey || '';
+      if (!GOOGLE_SCRIPT_URL) throw new Error('MISSING_GOOGLE_SCRIPT_URL');
+      CONFIG_READY = true;
     }catch(e){
       console.error('Config error:', e);
+      document.getElementById('loginError').innerHTML =
+        '<div class="alert alert-error">⚠️ تعذّر تحميل الإعدادات (config.json). تأكّد من المسار/الاستضافة.</div>';
+    }finally{
+      document.getElementById('loginBtn')?.removeAttribute('disabled');
     }
   }
 
-  // ===== طلبات للخادم =====
+  // ===== إرسال طلب للخلفية =====
   async function sendRequest(action, data = {}){
+    if (!GOOGLE_SCRIPT_URL) throw new Error('MISSING_CONFIG');
     const resp = await fetch(GOOGLE_SCRIPT_URL, {
       method:'POST',
       headers:{ 'Content-Type':'text/plain' },
       body: JSON.stringify({ action, data, ...(API_KEY ? { key: API_KEY } : {}) })
     });
-    return await resp.json();
+    if (!resp.ok) throw new Error('HTTP_'+resp.status);
+    const text = await resp.text();
+    if (text.trim().startsWith('<')) throw new Error('INVALID_JSON');
+    try{ return JSON.parse(text); }catch{ throw new Error('INVALID_JSON'); }
   }
+
+  // تشغيل تحميل الإعدادات عند فتح الصفحة
+  document.addEventListener('DOMContentLoaded', loadConfig);
 
   // ===== تسجيل الدخول =====
   document.getElementById('loginForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.innerHTML = '';
+
+    if (!CONFIG_READY){
+      errorDiv.innerHTML = '<div class="alert alert-error">⚠️ الإعدادات غير جاهزة. تأكّد من <strong>config.json</strong> وأنك تشغّل عبر سيرفر (مو file://).</div>';
+      return;
+    }
 
     const staffId = document.getElementById('staffId').value.trim();
     const btn = document.getElementById('loginBtn');
-    const errorDiv = document.getElementById('loginError');
-
     if (!staffId){
       errorDiv.innerHTML = '<div class="alert alert-error">أدخل رقم الموظف</div>';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'جاري التحقق...';
-    errorDiv.innerHTML = '';
+    btn.disabled = true; btn.textContent = 'جاري التحقق...';
 
     try{
       const resp = await sendRequest('verifyInstructor', { staffId });
-      if (resp.success && resp.data.authorized){
+      console.log('verifyInstructor →', resp);
+      if (resp?.success && resp?.data?.authorized){
         currentInstructor = resp.data;
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboard').classList.add('active');
-        document.getElementById('instructorName').textContent = resp.data.name;
+        document.getElementById('instructorName').textContent = resp.data.name || 'مستخدم';
         document.getElementById('instructorRole').textContent = (resp.data.role === 'admin' ? 'مدير' : 'مراقب');
-        loadDashboardData();
+        loadDashboardData().catch(()=>{});
       }else{
         errorDiv.innerHTML = '<div class="alert alert-error">⛔ غير مصرح لك بالدخول</div>';
       }
     }catch(e){
-      errorDiv.innerHTML = '<div class="alert alert-error">خطأ في الاتصال</div>';
+      console.error(e);
+      const msg =
+        e.message === 'MISSING_CONFIG' ? 'إعدادات الاتصال غير متوفّرة' :
+        e.message?.startsWith('HTTP_') ? 'خطأ في الخادم' :
+        e.message === 'INVALID_JSON' ? 'الاستجابة ليست JSON (تحقق من رابط السكربت/CORS)' :
+        'خطأ في الاتصال';
+      errorDiv.innerHTML = `<div class="alert alert-error">❌ ${msg}</div>`;
     }finally{
-      btn.disabled = false;
-      btn.textContent = 'دخول إلى اللوحة';
+      btn.disabled = false; btn.textContent = 'دخول إلى اللوحة';
     }
   });
 
-  // ===== تحميل بيانات اللوحة =====
+  // ===== تحميل بيانات الداشبورد =====
   async function loadDashboardData(){
     try{
       const resp = await sendRequest('getDashboardStats');
@@ -454,6 +454,7 @@
       }
       loadPendingRequests();
       loadDriversList();
+      loadPassengersList(); // ✅ مهم
     }catch(e){
       console.error('Load error:', e);
     }
@@ -513,8 +514,57 @@
     }
   }
 
+  // ===== المتدربون المحتاجون إلى توصيل =====
+  async function loadPassengersList(){
+    const container = document.getElementById('passengersTable');
+    try{
+      const resp = await sendRequest('getPassengersNeedingRide'); // وفّر الإجراء في السكربت الخلفي
+      if (resp.success && Array.isArray(resp.data) && resp.data.length){
+        let html = '<table><thead><tr>' +
+                    '<th>الاسم</th><th>رقم المتدرب</th><th>الحي</th>' +
+                    '<th>الأيام/الأوقات المفضلة</th><th>الحالة</th>' +
+                   '</tr></thead><tbody>';
+        resp.data.forEach(p=>{
+          const name   = p.name || p.passengerName || 'بدون اسم';
+          const id     = p.traineeId || p.studentId || '-';
+          const hood   = p.neighborhood || p.district || '-';
+          const days   = Array.isArray(p.preferredDays) ? p.preferredDays.join('، ')
+                       : Array.isArray(p.selectedDays)  ? p.selectedDays.join('، ')
+                       : (p.days || p.preferredTimes || '-');
+          const status = p.status || 'بانتظار التوصيل';
+          const badge  = status.includes('انتظار') || status.includes('بانتظار') ? 'badge-warning'
+                       : status.includes('مؤكد') || status.includes('جاري')       ? 'badge-success'
+                       : 'badge-danger';
+          html += `<tr>
+            <td>${name}</td>
+            <td>${id}</td>
+            <td>${hood}</td>
+            <td>${days}</td>
+            <td><span class="badge ${badge}">${status}</span></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      }else{
+        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا يوجد متدربون بحاجة إلى توصيل حالياً</p>';
+      }
+    }catch(e){
+      console.error('Passengers load error:', e);
+      container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
+    }
+  }
+
   // ===== تحديث البيانات =====
-  function refreshData(){ loadDashboardData(); }
+      async function refreshData(){
+    try{
+      console.log('🔄 refresh clicked');
+      await loadDashboardData(); // انتظر اكتمال التحديث
+      showToast('تم تحديث البيانات','success');
+    }catch(err){
+      console.error('Refresh error:', err);
+      showToast('تعذّر التحديث','error');
+    }
+  }
 
   // ===== تسجيل الخروج =====
   function logout(){
@@ -523,9 +573,6 @@
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('staffId').value = '';
   }
-
-  // ===== بدء التشغيل =====
-  loadConfig();
 </script>
 </body>
 </html>
