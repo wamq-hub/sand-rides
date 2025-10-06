@@ -1516,12 +1516,13 @@
     function setAppMode(mode){
       appMode = mode;
 
-      // ضيف/احذف كلاسات الحالة على <body> لاستخدامها في CSS
+      // تبديل كلاسات عامة على <body>
       document.body.classList.remove('mode-login','mode-register','mode-app');
       if(mode === 'login')         document.body.classList.add('mode-login');
       if(mode === 'register_only') document.body.classList.add('mode-register');
       if(mode === 'app')           document.body.classList.add('mode-app');
 
+      // مراجع عناصر الواجهة
       const logoutBtn    = document.getElementById('logoutBtn');
       const tabs         = document.getElementById('tabsContainer');
       const topUserInfo  = document.getElementById('topUserInfo');
@@ -1529,9 +1530,11 @@
       const allContents  = Array.from(document.querySelectorAll('.content'));
       const reg          = document.getElementById('registerContent');
       const backWrap     = document.getElementById('backToLoginWrap');
-      const regTab       = document.querySelector('.tab[data-tab="register"]');
-      if(regTab) regTab.style.display = 'none';
 
+      // إخفاء تبويب التسجيل دائمًا من واجهة التطبيق الرئيسية
+      document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
+
+      // دوال مساعدة محلية
       const hideAllContents = ()=>{
         allContents.forEach(c=>{
           c.classList.remove('active');
@@ -1553,7 +1556,6 @@
         tabs.classList.remove('active');
         topUserInfo.style.display='none';
         hideAllContents();
-        document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
         backWrap.style.display='none';
       }
 
@@ -1564,32 +1566,60 @@
         topUserInfo.style.display='none';
         hideAllContents(); 
         showOnly(reg);
-        document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
         backWrap.style.display='block';
       }
 
       if(mode==='app'){
-        if (logoutBtn) logoutBtn.style.display = 'inline-block'; // أو 'flex'
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
         loginSection.style.display='none';
-        // إخفاء رسالة الترحيب بعد 5 ثوانٍ
+
+        // إخفاء بانر الترحيب لاحقًا
         setTimeout(() => {
           const banner = document.getElementById('welcomeBanner');
           if(banner) banner.style.display = 'none';
         }, 5000);
+
         tabs.classList.add('active');
         hideAllContents(); 
         showOnly(document.getElementById('homeContent'));
-        setIsHome(true); // الصفحة الرئيسية مفعّلة الآن
-        topUserInfo.style.display='inline-flex'; // الاسم + الشارة جنب بعض
+        setIsHome(true);
+        topUserInfo.style.display='inline-flex';
+
+        // فكّ إلغاء تفعيل بقية الأقسام
         allContents.forEach(c=>{
           c.removeAttribute('hidden'); 
           c.removeAttribute('inert');
           c.setAttribute('aria-hidden', c.classList.contains('active') ? 'false' : 'true');
         });
-        document.querySelector('.tab[data-tab="register"]')?.style.setProperty('display','none');
         backWrap.style.display='none';
+
+        // 🔒 قياس نوع المستخدم
+        const isDriver = !!currentUser && String(currentUser.userType).trim() === 'سائق';
+
+        // 🔒 إخفاء تبويب "حجز جديد" إذا كان المستخدم سائق
+        const bookTab  = document.querySelector('.tab[data-tab="book"]');
+        if (bookTab) bookTab.style.display = isDriver ? 'none' : 'inline-block';
+
+        // 🔒 إخفاء تبويب "السائقين" إذا كان المستخدم سائق
+        const driversTab = document.querySelector('.tab[data-tab="drivers"]');
+        if (driversTab) driversTab.style.display = isDriver ? 'none' : 'inline-block';
+
+        // (اختياري) تأمين محتوى صفحة السائقين نفسها
+        const driversContent = document.getElementById('driversContent');
+        if (driversContent) {
+          if (isDriver) {
+            driversContent.setAttribute('hidden', '');
+            driversContent.setAttribute('aria-hidden', 'true');
+            driversContent.setAttribute('inert', '');
+          } else {
+            driversContent.removeAttribute('hidden');
+            driversContent.setAttribute('aria-hidden', driversContent.classList.contains('active') ? 'false' : 'true');
+            driversContent.removeAttribute('inert');
+          }
+        }
       }
     }
+
 
     function guardNavigation(ev){
       if(appMode!=='app'){
@@ -1817,18 +1847,33 @@
       // منع التنقل إن لم يكمل الدخول
       if(guardNavigation(new Event('nav'))) return;
 
+      // 🔒 منع السائق من فتح تبويب "حجز جديد"
+      if (name === 'book' && currentUser && String(currentUser.userType).trim() === 'سائق') {
+        showToast('الحجز متاح للركاب فقط', 'warn');
+        return;
+      }
+
+      // 🔒 منع السائق من فتح تبويب "السائقين"
+      if (name === 'drivers' && currentUser && String(currentUser.userType).trim() === 'سائق') {
+        showToast('هذه الصفحة مخصصة للركاب فقط', 'warn');
+        return;
+      }
+
+      // تفعيل التبويب المطلوب وإخفاء البقية
       $$('.tab').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
       $$('.content').forEach(sec=>{
         const active = (sec.id === (name+'Content'));
         sec.classList.toggle('active', active);
         sec.setAttribute('aria-hidden', active ? 'false' : 'true');
       });
-      // تحديث المحتوى عند فتح تبويب معيّن
+
+      // تحميل المحتوى الخاص بكل تبويب عند فتحه
       if(name==='drivers')   loadDrivers();
       if(name==='requests')  loadRequests();
       if(name==='home')      loadMyStats();
       if(name==='book')      prepareBookingUI();
-      if(name==='rate')      prepareRatingUI();
+      if(name==='rate')      prepareRatingUI?.();
+
       setIsHome(name === 'home');
     }
 
@@ -1897,58 +1942,72 @@
     }
 
     // ===== السائقون =====
-    function renderDrivers(list){
-      const wrap = document.getElementById('driversList');
-      const countEl = document.getElementById('availableDriversCount');
-      if(countEl) countEl.textContent = `(${list?.length ?? 0})`;
-      if(!wrap) return;
+function renderDrivers(list){
+  const wrap = document.getElementById('driversList');
+  const countEl = document.getElementById('availableDriversCount');
+  if(countEl) countEl.textContent = `(${list?.length ?? 0})`;
+  if(!wrap) return;
 
-      if(!list || !list.length){
-        wrap.innerHTML = `<div class="alert alert-warning">لا يوجد سائقون متاحون حالياً</div>`;
+  if(!list || !list.length){
+    wrap.innerHTML = `<div class="alert alert-warning">لا يوجد سائقون متاحون حالياً</div>`;
+    return;
+  }
+
+  wrap.innerHTML = '';
+
+  const isViewerDriver = !!currentUser && String(currentUser.userType).trim() === 'سائق';
+
+  list.forEach(d=>{
+    const phone = getWaPhoneFromRecord(d);
+    const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند" عن طريق الكلية التقنية بحقل.`) : '';
+    const card = document.createElement('div');
+    card.className = 'driver-card';
+
+    // 🔒 إخفاء سطر التقييم عن السائقين
+    const ratingHtml = (!isViewerDriver)
+      ? `<p class="rating">التقييم: ${'⭐'.repeat(Math.max(1, Math.min(5, Number(d.rating)||0)))} (${d.rating||0})</p>`
+      : ``;
+
+    card.innerHTML = `
+      <div class="driver-info">
+        <div class="driver-details">
+          <h3>${sanitizeStr(d.name || 'بدون اسم')}</h3>
+          <p>الرقم: <strong>${sanitizeStr(d.traineeId || d.id || '')}</strong></p>
+          <p>الحي: ${sanitizeStr(d.neighborhood || '-')}</p>
+          ${ratingHtml}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${waUrl ? `<a class="btn btn-whatsapp" href="${waUrl}" target="_blank" rel="noopener">واتساب</a>`:''}
+          <button class="btn btn-primary" data-pick="${sanitizeStr(d.traineeId || d.id || '')}">اختيار</button>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+
+  // اختيار سريع لسائق → ينقلك لتبويب الحجز (إن كنت راكب)
+  wrap.querySelectorAll('button[data-pick]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if (currentUser && String(currentUser.userType).trim() === 'سائق') {
+        showToast('الحجز متاح للركاب فقط', 'warn');
         return;
       }
+      const id = btn.getAttribute('data-pick');
+      lastQuickDriverId = id;
+      document.querySelector('.tab[data-tab="book"]')?.click();
+      setTimeout(()=>{
+        const sel = document.getElementById('selectedDriver');
+        if(sel){
+          const match = drivers.find(x => (x.traineeId||x.id) == id);
+          if(match){
+            sel.value = (match.traineeId || match.id || '');
+          }
+        }
+      }, 50);
+    });
+  });
+}
 
-      wrap.innerHTML = '';
-      list.forEach(d=>{
-        const phone = getWaPhoneFromRecord(d);
-        const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند" عن طريق الكلية التقنية بحقل.`) : '';
-        const card = document.createElement('div');
-        card.className = 'driver-card';
-        card.innerHTML = `
-          <div class="driver-info">
-            <div class="driver-details">
-              <h3>${sanitizeStr(d.name || 'بدون اسم')}</h3>
-              <p>الرقم: <strong>${sanitizeStr(d.traineeId || d.id || '')}</strong></p>
-              <p>الحي: ${sanitizeStr(d.neighborhood || '-')}</p>
-              <p class="rating">التقييم: ${'⭐'.repeat(Math.max(1, Math.min(5, Number(d.rating)||0)))} (${d.rating||0})</p>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              ${waUrl ? `<a class="btn btn-whatsapp" href="${waUrl}" target="_blank" rel="noopener">واتساب</a>`:''}
-              <button class="btn btn-primary" data-pick="${sanitizeStr(d.traineeId || d.id || '')}">اختيار</button>
-            </div>
-          </div>
-        `;
-        wrap.appendChild(card);
-      });
-
-      // اختيار سريع لسائق
-      wrap.querySelectorAll('button[data-pick]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const id = btn.getAttribute('data-pick');
-          lastQuickDriverId = id;
-          document.querySelector('.tab[data-tab="book"]')?.click();
-          setTimeout(()=>{
-            const sel = document.getElementById('selectedDriver');
-            if(sel){
-              const match = drivers.find(x => (x.traineeId||x.id) == id);
-              if(match){
-                sel.value = (match.traineeId || match.id || '');
-              }
-            }
-          }, 50);
-        });
-      });
-    }
 
     async function loadDrivers(){
       try{
@@ -1975,7 +2034,7 @@
     }
 
     // ===== طلبات المستخدم =====
-    function renderRequests(list){
+    function renderPassengerRequests(list){
       const host = document.getElementById('userRequestsList');
       const badge = document.getElementById('requestsBadge');
       if(!host) return;
@@ -2030,15 +2089,163 @@
       }
     }
 
-    async function loadRequests(){
-      if(!currentUser) return;
+
+    function renderDriverRequests(list){
+  const host  = document.getElementById('userRequestsList');
+  const badge = document.getElementById('requestsBadge');
+  if(!host) return;
+
+  if(!list || !list.length){
+    host.innerHTML = `<div class="alert alert-info">لا توجد طلبات واردة حالياً</div>`;
+    if(badge){ badge.textContent='0'; badge.style.display='none'; }
+    return;
+  }
+
+  host.innerHTML = '';
+  let pendingCount = 0;
+
+  list.forEach(r=>{
+    const stAr = String(r.status || 'معلق').trim();
+    if(stAr === 'معلق') pendingCount++;
+
+    const cls =
+      stAr === 'مقبول' ? 'accepted' :
+      stAr === 'مرفوض' ? 'rejected' : '';
+
+    const daysArr = Array.isArray(r.selectedDays)
+      ? r.selectedDays
+      : String(r.selectedDays || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+    const stChip =
+      stAr === 'مقبول' ? '<div class="status-accepted">مقبول</div>' :
+      stAr === 'مرفوض' ? '<div class="status-rejected">مرفوض</div>' :
+                          '<div class="status-pending">قيد المراجعة</div>';
+
+    const controls = (stAr === 'معلق')
+      ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-accept" data-act="accept" data-id="${r.id}">✅ قبول</button>
+          <button class="btn btn-reject" data-act="reject" data-id="${r.id}">❌ رفض</button>
+        </div>
+      `
+      : '';
+
+    const d = document.createElement('div');
+    d.className = `request-card ${cls}`;
+    d.innerHTML = `
+      <div class="request-header">
+        <div class="request-title">طلب #${(r.id ?? '-')}</div>
+        ${stChip}
+      </div>
+      <div class="request-details">
+        <p>الراكب: <strong>${(r.passengerName || '-')}</strong> — ${sanitizeStr(r.passengerTraineeId || '')}</p>
+        <p>الهاتف: ${sanitizeStr(r.passengerPhone || '-')}</p>
+        <p>الأيام: ${daysArr.length ? daysArr.join('، ') : '-'}</p>
+        <p>المدة: ${r.duration || '-'} أسبوع</p>
+        ${r.notes ? `<p>ملاحظات: ${r.notes}</p>` : ''}
+      </div>
+      ${controls}
+    `;
+    host.appendChild(d);
+  });
+
+  if(badge){
+    badge.textContent = String(pendingCount);
+    badge.style.display = pendingCount ? 'inline-flex' : 'none';
+  }
+
+  // ربط أزرار القبول/الرفض
+  host.querySelectorAll('button[data-act]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id  = btn.getAttribute('data-id');
+      const act = btn.getAttribute('data-act'); // 'accept' | 'reject'
+      if(!id) return;
+      setRequestStatus(id, act);
+    });
+  });
+}
+
+
+async function setRequestStatus(id, action){
+  if(!currentUser || String(currentUser.userType||'') !== 'سائق'){
+    showToast('هذا الإجراء مخصص للسائقين','warn'); return;
+  }
+  const approve = (action === 'accept');
+  const payload = {
+    requestId: String(id),
+    response:  approve ? 'مقبول' : 'مرفوض',
+    driverTraineeId: currentUser.traineeId
+  };
+
+  try{
+    const resp = await sendToGoogleSheets('respondToRequest', payload);
+    if(resp && resp.success){
+      showToast(approve ? 'تم قبول الطلب' : 'تم رفض الطلب', 'success');
+
+      // 🧹 تفريغ كاش طلبات السائق لضمان التحديث الفوري
       try{
-        const {data} = await fetchWithCache('getPassengerRequests', { passengerTraineeId: currentUser.traineeId }, { ttl: CACHE_TTL.getPassengerRequests });
-        renderRequests(Array.isArray(data)?data:[]);
-      }catch{
-        $('#userRequestsList').innerHTML = `<div class="alert alert-error">تعذر تحميل الطلبات</div>`;
-      }
+        const key = buildCacheKey('getDriverRequests', { driverTraineeId: currentUser.traineeId });
+        memCache.delete(key);
+        localStorage.removeItem('sand_cache_' + key);
+      }catch{}
+      await loadRequests();
+    }else{
+      showToast(resp?.error || 'تعذر تحديث الحالة','error');
     }
+  }catch(e){
+    console.error(e);
+    showToast('خطأ في الاتصال','error');
+  }
+}
+
+
+
+async function loadRequests(){
+  if(!currentUser) return;
+
+  const isDriver = String(currentUser.userType || '').trim() === 'سائق';
+  const host     = document.getElementById('userRequestsList');
+  const titleEl  = document.getElementById('requestsTitle');
+  const badge    = document.getElementById('requestsBadge');
+
+  if (titleEl) titleEl.textContent = isDriver ? 'الطلبات الواردة لي كسائق' : 'طلباتي';
+
+  try{
+    if (isDriver){
+      // ✅ السائق: قد ترجع الخدمة كائن {requests, stats}
+      const {data} = await fetchWithCache('getDriverRequests', {
+        driverTraineeId: currentUser.traineeId
+      }, { ttl: CACHE_TTL.getDriverRequests });
+
+      const list  = Array.isArray(data) ? data
+                   : (Array.isArray(data?.requests) ? data.requests : []);
+      const pend  = (Array.isArray(data?.requests) && data?.stats?.pendingRequests != null)
+                      ? Number(data.stats.pendingRequests) : (list.filter(r=>String(r.status).trim()==='معلق').length);
+
+      renderDriverRequests(list);
+
+      if(badge){
+        badge.textContent = String(pend || 0);
+        badge.style.display = pend ? 'inline-flex' : 'none';
+      }
+
+    } else {
+      // ✅ الراكب: هذه الخدمة تُرجع مصفوفة مباشرة
+      const {data} = await fetchWithCache('getPassengerRequests', {
+        passengerTraineeId: currentUser.traineeId
+      }, { ttl: CACHE_TTL.getPassengerRequests });
+
+      const list = Array.isArray(data) ? data : [];
+      renderPassengerRequests(list);
+    }
+  }catch(e){
+    console.error('loadRequests error', e);
+    if(host) host.innerHTML = `<div class="alert alert-error">تعذر تحميل الطلبات</div>`;
+    if(badge){ badge.textContent='0'; badge.style.display='none'; }
+  }
+}
+
+
 
 
     function pickNumber(obj, keys){
@@ -2084,153 +2291,238 @@
 
 
     // ===== الحجز =====
-    function prepareBookingUI(){
-      // تعبئة السائقين في السلكت
-      const sel = document.getElementById('selectedDriver');
-      if(sel){
-        const cur = sel.value;
-        sel.innerHTML = `<option value="">اختر السائق</option>` + drivers.map(d=>{
-          const id = sanitizeStr(d.traineeId || d.id || '');
-          const nm = sanitizeStr(d.name || id || 'سائق');
-          return `<option value="${id}">${nm} — ${sanitizeStr(d.neighborhood||'-')}</option>`;
-        }).join('');
-        if(lastQuickDriverId) sel.value = lastQuickDriverId;
-        if(cur && !sel.value) sel.value = cur;
-      }
-      fillDaysCheckboxes();
-    }
+function prepareBookingUI(){
+  // 🔒 سدّ إضافي: لو somehow وصل السائق هنا نرجّعه للرئيسية
+  if (currentUser && String(currentUser.userType).trim() === 'سائق') {
+    showToast('الحجز متاح للركاب فقط', 'warn');
+    document.querySelector('.tab[data-tab="home"]')?.click();
+    return;
+  }
 
-    async function submitBooking(ev){
-      ev?.preventDefault?.();
-      if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
+  // تعبئة قائمة السائقين
+  const sel = document.getElementById('selectedDriver');
+  if(sel){
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">اختر السائق</option>` + (drivers||[]).map(d=>{
+      const id = sanitizeStr(d.traineeId || d.id || '');
+      const nm = sanitizeStr(d.name || id || 'سائق');
+      return `<option value="${id}">${nm} — ${sanitizeStr(d.neighborhood||'-')}</option>`;
+    }).join('');
+    if(lastQuickDriverId) sel.value = lastQuickDriverId;
+    if(cur && !sel.value) sel.value = cur;
+  }
 
-      const driverId = $('#selectedDriver').value;
-      const driver   = drivers.find(d => (d.traineeId || d.id) == driverId) || null;
-      let   days     = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(i => i.value);
-      let   duration = Number($('#duration').value || 0);
-      const notes    = $('#tripNotes').value.trim();
+  // تعبئة أيام الأسبوع بحسب الإعدادات
+  fillDaysCheckboxes();
+}
 
-      // ✅ تحققات أقوى
-      if (!driverId || !driver) { showToast('اختر السائق','warn'); return; }
-      days = Array.from(new Set(days)); // إزالة التكرار
-      const allowedDays = (window.DAYS || ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس']);
-      if (!days.length || !days.every(d => allowedDays.includes(d))) {
-        showToast('اختر أيام صحيحة','warn'); return;
-      }
-      duration = Math.max(0, Math.floor(duration));
-      if (!duration) { showToast('اختر المدة','warn'); return; }
 
-      // منع النقر المزدوج
-      const btn = $('#bookingBtn');
-      if (btn?.dataset?.busy === '1') return;
-      if (btn) { btn.disabled = true; btn.dataset.busy = '1'; btn.setAttribute('aria-busy','true'); }
 
+async function submitBooking(ev){
+  ev?.preventDefault?.();
+  if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
+
+  // 🔒 المنع الحازم: لا حجز إلا للراكب
+  if (String(currentUser.userType).trim() !== 'متدرب') {
+    showToast('الحجز متاح للركاب فقط', 'warn');
+    return;
+  }
+
+  const driverId = $('#selectedDriver').value;
+  const driver   = (drivers||[]).find(d => (d.traineeId || d.id) == driverId) || null;
+  let   days     = Array.from(document.querySelectorAll('#daysGroup input:checked')).map(i => i.value);
+  let   duration = Number($('#duration').value || 0);
+  const notes    = $('#tripNotes').value.trim();
+
+  // تحققات مدخلات
+  if (!driverId || !driver) { showToast('اختر السائق','warn'); return; }
+  days = Array.from(new Set(days));
+  const allowedDays = (window.DAYS || ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس']);
+  if (!days.length || !days.every(d => allowedDays.includes(d))) {
+    showToast('اختر أيام صحيحة','warn'); return;
+  }
+  duration = Math.max(0, Math.floor(duration));
+  if (!duration) { showToast('اختر المدة','warn'); return; }
+
+  // منع النقر المزدوج
+  const btn = $('#bookingBtn');
+  if (btn?.dataset?.busy === '1') return;
+  if (btn) { btn.disabled = true; btn.dataset.busy = '1'; btn.setAttribute('aria-busy','true'); }
+
+  try{
+    const payload = {
+      passengerTraineeId:   currentUser.traineeId,
+      passengerName:        currentUser.name || '',
+      passengerPhone:       currentUser.phone || '',
+      passengerNeighborhood:currentUser.neighborhood || '',
+
+      driverTraineeId: driverId,
+      driverName:      driver.name || '',
+      driverPhone:     driver.phone || '',
+
+      selectedDays: days,
+      duration,
+      notes,
+      requestDate: new Date().toISOString()
+    };
+
+    const resp = await sendToGoogleSheets('submitBooking', payload);
+
+    if (resp && resp.success === true) {
+      const newId = resp.data?.id;
+      showToast(newId ? `تم إرسال الطلب #${newId} بنجاح` : 'تم إرسال الطلب بنجاح','success');
+
+      // فتح واتساب (اختياري إن وُجد رقم)
       const wa = getWaPhoneFromRecord(driver);
-
-      try{
-        const payload = {
-          passengerTraineeId:   currentUser.traineeId,
-          passengerName:        currentUser.name || '',
-          passengerPhone:       currentUser.phone || '',
-          passengerNeighborhood:currentUser.neighborhood || '',
-
-          driverTraineeId: driverId,
-          driverName:      driver.name || '',
-          driverPhone:     driver.phone || '',
-
-          selectedDays: days,
-          duration,
-          notes,
-          requestDate: new Date().toISOString()
-        };
-
-        const resp = await sendToGoogleSheets('submitBooking', payload);
-
-        if (resp && resp.success === true) {
-          const newId = resp.data?.id;
-          showToast(newId ? `تم إرسال الطلب #${newId} بنجاح` : 'تم إرسال الطلب بنجاح','success');
-
-          if (wa) {
-            const msg = `مرحباً ${driver?.name||''}، أنا ${currentUser.name}. طلبت توصيل (${days.join('، ')}) لمدة ${duration} أسبوع(أسابيع) عبر "ساند".`;
-            window.open(buildWaUrl(wa, msg), '_blank', 'noopener');
-          }
-
-          await loadRequests();
-          document.querySelector('.tab[data-tab="requests"]')?.click();
-        } else {
-          showToast(resp?.error || 'تعذر حفظ الطلب','error');
-        }
-      } catch (e) {
-        console.error(e);
-        showToast('خطأ في الاتصال','error');
-      } finally {
-        if (btn) { btn.disabled = false; btn.dataset.busy = '0'; btn.removeAttribute('aria-busy'); }
+      if (wa) {
+        const msg = `مرحباً ${driver?.name||''}، أنا ${currentUser.name}. طلبت توصيل (${days.join('، ')}) لمدة ${duration} أسبوع(أسابيع) عبر "ساند".`;
+        window.open(buildWaUrl(wa, msg), '_blank', 'noopener');
       }
+
+      await loadRequests();
+      document.querySelector('.tab[data-tab="requests"]')?.click();
+    } else {
+      showToast(resp?.error || 'تعذر حفظ الطلب','error');
     }
+  } catch (e) {
+    console.error(e);
+    showToast('خطأ في الاتصال','error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.dataset.busy = '0'; btn.removeAttribute('aria-busy'); }
+  }
+}
 
 
 
     // ===== التقييم =====
-    function prepareRatingUI(){
-      const sel = document.getElementById('ratedDriver');
-      if(!sel) return;
-      const cur = sel.value;
-      sel.innerHTML = `<option value="">اختر</option>` + drivers.map(d=>{
-        const id = sanitizeStr(d.traineeId || d.id || '');
-        const nm = sanitizeStr(d.name || id || 'سائق');
-        return `<option value="${id}">${nm}</option>`;
-      }).join('');
-      if(cur) sel.value = cur;
-    }
+async function prepareRatingUI(){
+  const sel   = document.getElementById('ratedDriver');
+  const title = document.getElementById('rateTitle');
+  const label = document.getElementById('rateSelectLabel');
+  if(!sel) return;
 
-    async function submitRating(ev){
-      ev?.preventDefault?.();
-      if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
+  const isDriver = !!currentUser && String(currentUser.userType).trim() === 'سائق';
 
-      const driverId = $('#ratedDriver').value;
-      const stars    = Number($('#ratingStars').value || 0);
-      const notes    = $('#ratingNotes').value.trim();
+  // تفريغ + عنوان/وسم مناسبين للدور
+  sel.innerHTML = `<option value="">اختر</option>`;
+  if(isDriver){
+    title.textContent = 'تقييم الراكب';
+    label.textContent = 'الراكب';
 
-      if (!driverId || !stars) { showToast('اختر السائق والتقييم','warn'); return; }
+    // اجلب ركاب هذا السائق من الطلبات (مقبول/مكتمل)
+    let reqsData = null;
+    try{
+      const {data} = await fetchWithCache('getDriverRequests', {
+        driverTraineeId: currentUser.traineeId
+      }, { ttl: CACHE_TTL.getDriverRequests });
+      reqsData = Array.isArray(data) ? data : (Array.isArray(data?.requests) ? data.requests : []);
+    }catch{}
 
-      // جلب اسم السائق من القائمة (اختياري لكنه مفيد للتقارير)
-      const driver = (drivers || []).find(d => String(d.traineeId || d.id) === String(driverId)) || {};
-      const driverName = driver.name || driverId;
-
-      try{
-        $('#ratingBtn').disabled = true;
-
-        // ✅ مفاتيح متوافقة مع السكربت الخلفي (handleSubmitRating)
-        const payload = {
-          targetType:        'سائق',                 // نوع الهدف
-          targetName:        driverName,             // اسم السائق
-          targetTraineeId:   driverId,               // رقم السائق
-          raterName:         currentUser.name || '', // اسم المُقيِّم
-          raterTraineeId:    currentUser.traineeId,  // رقم المُقيِّم
-          stars,                                     // 1..5
-          notes                                      // ملاحظات
-        };
-
-        const resp = await sendToGoogleSheets('submitRating', payload);
-
-        if (resp && resp.success === true) {
-          showToast('شكراً لتقييمك','success');
-          $('#ratingForm').reset();
-          // تحديث بعض الشاشات بعد الإرسال
-          await loadMyStats();
-          if (typeof loadDrivers === 'function') { loadDrivers(); } // لتحديث متوسط تقييم السائق
-        } else {
-          showToast(resp?.error || 'تعذر إرسال التقييم','error');
+    const seen = new Set();
+    const passengers = [];
+    (reqsData||[])
+      .filter(r => ['مقبول','مكتمل'].includes(String(r.status||'').trim()))
+      .forEach(r=>{
+        const id = String(r.passengerTraineeId||'').trim();
+        if(id && !seen.has(id)){
+          seen.add(id);
+          passengers.push({ id, name: sanitizeStr(r.passengerName||id) });
         }
+      });
 
-      } catch (e) {
-        console.error(e);
-        showToast('خطأ في الاتصال','error');
-
-      } finally {
-        $('#ratingBtn').disabled = false;
-      }
+    if(!passengers.length){
+      sel.innerHTML = `<option value="">لا يوجد ركاب قابلين للتقييم حالياً</option>`;
+      return;
     }
+
+    passengers.forEach(p=>{
+      sel.insertAdjacentHTML('beforeend',
+        `<option value="${p.id}">${p.name} — ${p.id}</option>`);
+    });
+
+    // نخزّن مؤقتًا لالتقاط الاسم في submitRating
+    sel.dataset.role = 'rate_passenger';
+    sel.dataset.lookup = JSON.stringify(passengers);
+
+  }else{
+    title.textContent = 'تقييم السائق';
+    label.textContent = 'السائق';
+
+    // تأكد أن drivers مُحمَّلة
+    if(!Array.isArray(drivers) || !drivers.length){
+      try{ await loadDrivers(); }catch{}
+    }
+
+    (drivers||[]).forEach(d=>{
+      const id = sanitizeStr(d.traineeId || d.id || '');
+      const nm = sanitizeStr(d.name || id || 'سائق');
+      sel.insertAdjacentHTML('beforeend', `<option value="${id}">${nm}</option>`);
+    });
+
+    sel.dataset.role = 'rate_driver';
+    sel.dataset.lookup = JSON.stringify(
+      (drivers||[]).map(d=>({id:String(d.traineeId||d.id||''), name:String(d.name||'')}))
+    );
+  }
+}
+
+
+async function submitRating(ev){
+  ev?.preventDefault?.();
+  if (!currentUser) { showToast('سجّل الدخول أولاً','warn'); return; }
+
+  const sel      = document.getElementById('ratedDriver');
+  const chosenId = $('#ratedDriver').value;
+  const stars    = Number($('#ratingStars').value || 0);
+  const notes    = $('#ratingNotes').value.trim();
+
+  if (!chosenId || !stars) { showToast('اختر الهدف والتقييم','warn'); return; }
+
+  const selRole = sel?.dataset?.role || 'rate_driver';
+  let targetType = (selRole === 'rate_passenger') ? 'راكب' : 'سائق';
+  let targetId   = chosenId;
+  let targetName = '';
+
+  // استخرج الاسم من lookup المخزّن
+  try{
+    const lookup = JSON.parse(sel?.dataset?.lookup || '[]');
+    const match  = lookup.find(x => String(x.id) === String(chosenId));
+    targetName   = match?.name || chosenId;
+  }catch{
+    targetName = chosenId;
+  }
+
+  try{
+    $('#ratingBtn').disabled = true;
+
+    const payload = {
+      targetType,                 // 'راكب' لو السائق هو المُقيِّم، وإلا 'سائق'
+      targetName,                 // اسم الهدف
+      targetTraineeId: targetId,  // رقم الهدف
+      raterName: currentUser.name || '',
+      raterTraineeId: currentUser.traineeId,
+      stars,
+      notes
+    };
+
+    const resp = await sendToGoogleSheets('submitRating', payload);
+
+    if (resp && resp.success === true) {
+      showToast('شكراً لتقييمك','success');
+      $('#ratingForm').reset();
+      await loadMyStats();
+      if (typeof loadDrivers === 'function') { loadDrivers(); } // لتحديث المتوسطات
+    } else {
+      showToast(resp?.error || 'تعذر إرسال التقييم','error');
+    }
+
+  } catch (e) {
+    console.error(e);
+    showToast('خطأ في الاتصال','error');
+  } finally {
+    $('#ratingBtn').disabled = false;
+  }
+}
 
 
     // ===== التسجيل =====
