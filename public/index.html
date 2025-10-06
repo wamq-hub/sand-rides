@@ -31,12 +31,6 @@
       --req-rej-bg:#ffebee;  --req-rej-bd:#f44336;
     }
 
-        :root{
-      --base-fs: 20px; /* الأساس الحالي */
-    }
-
-    /* خلّي الـ rem يعتمد على المتغير */
-    html{ font-size: var(--base-fs); }
 
     /* الوضع الداكن */
     .dark{
@@ -1143,7 +1137,7 @@
   <section id="intro-screen" class="intro-screen">
     <div class="intro-content">
       <img src="assets/intro-hero.jpg" alt="تعريف بالمبادرة" class="intro-hero" loading="eager" decoding="async" fetchpriority="high">
-      <button id="startBtn" class="intro-start">انطلق</button>
+      <button id="startBtn" class="intro-start">متابعة الدخول</button>
       <div id="introLoader" class="intro-loader" aria-hidden="true">جاري التحميل...</div>
     </div>
   </section>
@@ -1508,6 +1502,8 @@
     let drivers = [];
     let currentUser = null;
     let approvedPartners = [];
+    let activeDriverLocks = []; // [{driverTraineeId, fromISO, toISO}]
+
 
     // القيم: 'login' | 'register_only' | 'app'
     let appMode = 'login';
@@ -1631,6 +1627,27 @@
     }
 
     // ===== Utils =====
+
+    // احسب بداية الأحد القادم (أو هذا الأحد إذا اليوم أحد)
+    function getUpcomingSundayStart(d = new Date()){
+      const dt = new Date(d);
+      const day = dt.getDay(); // 0=الأحد في بيئة KSA لو المتصفح على Asia/Riyadh؛ JS القياسي: 0=الأحد
+      const diff = (day === 0) ? 0 : (7 - day); // إلى الأحد القادم
+      dt.setHours(0,0,0,0);
+      dt.setDate(dt.getDate() + diff);
+      return dt;
+    }
+
+    // احسب نهاية السبت لنهاية المدة (duration أسابيع)
+    function calcLockWindow(durationWeeks = 1, base = new Date()){
+      const start = getUpcomingSundayStart(base);              // الأحد 00:00
+      const end   = new Date(start);                           // نسخة
+      end.setDate(end.getDate() + (durationWeeks * 7) - 1);    // السبت
+      end.setHours(23,59,59,999);
+      return { start, end };
+    }
+
+
     function sanitizeStr(s){ return String(s||'').replace(/[\u200E\u200F\u202A-\u202E]/g,'').trim(); }
     function normalizeDigits(s=''){
       const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
@@ -1877,6 +1894,32 @@
       setIsHome(name === 'home');
     }
 
+    async function fetchActiveLocks(){
+      const {data} = await fetchWithCache('getActiveDriverLocks', {}, {ttl: 30000});
+      // نتوقع مصفوفة عناصر فيها: driverTraineeId, fromISO, toISO
+      activeDriverLocks = Array.isArray(data) ? data : [];
+    }
+
+    // helper: هل السائق مقفول الآن؟
+    function isDriverLockedNow(driverId){
+      const now = Date.now();
+      return activeDriverLocks.some(l=>{
+        return String(l.driverTraineeId) === String(driverId)
+          && now >= Date.parse(l.fromISO) && now <= Date.parse(l.toISO);
+      });
+    }
+
+    // helper: نهاية القفل (إن وجد)
+    function driverLockEnd(driverId){
+      const now = Date.now();
+      const hit = activeDriverLocks.find(l =>
+        String(l.driverTraineeId) === String(driverId)
+        && now >= Date.parse(l.fromISO) && now <= Date.parse(l.toISO)
+      );
+      return hit ? new Date(hit.toISO) : null;
+    }
+
+
     // ===== تحميل الإعدادات من config.json =====
     async function loadConfig(){
       const url = 'config.json?ts=' + Date.now(); // تفادي الكاش
@@ -1942,81 +1985,99 @@
     }
 
     // ===== السائقون =====
-function renderDrivers(list){
-  const wrap = document.getElementById('driversList');
-  const countEl = document.getElementById('availableDriversCount');
-  if(countEl) countEl.textContent = `(${list?.length ?? 0})`;
-  if(!wrap) return;
+// ===== السائقون =====
+    function renderDrivers(list){
+      const wrap = document.getElementById('driversList');
+      const countEl = document.getElementById('availableDriversCount');
+      if (countEl) countEl.textContent = `(${list?.length ?? 0})`;
+      if (!wrap) return;
 
-  if(!list || !list.length){
-    wrap.innerHTML = `<div class="alert alert-warning">لا يوجد سائقون متاحون حالياً</div>`;
-    return;
-  }
-
-  wrap.innerHTML = '';
-
-  const isViewerDriver = !!currentUser && String(currentUser.userType).trim() === 'سائق';
-
-  list.forEach(d=>{
-    const phone = getWaPhoneFromRecord(d);
-    const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أود التنسيق لرحلة عبر "ساند" عن طريق الكلية التقنية بحقل.`) : '';
-    const card = document.createElement('div');
-    card.className = 'driver-card';
-
-    // 🔒 إخفاء سطر التقييم عن السائقين
-    const ratingHtml = (!isViewerDriver)
-      ? `<p class="rating">التقييم: ${'⭐'.repeat(Math.max(1, Math.min(5, Number(d.rating)||0)))} (${d.rating||0})</p>`
-      : ``;
-
-    card.innerHTML = `
-      <div class="driver-info">
-        <div class="driver-details">
-          <h3>${sanitizeStr(d.name || 'بدون اسم')}</h3>
-          <p>الرقم: <strong>${sanitizeStr(d.traineeId || d.id || '')}</strong></p>
-          <p>الحي: ${sanitizeStr(d.neighborhood || '-')}</p>
-          ${ratingHtml}
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          ${waUrl ? `<a class="btn btn-whatsapp" href="${waUrl}" target="_blank" rel="noopener">واتساب</a>`:''}
-          <button class="btn btn-primary" data-pick="${sanitizeStr(d.traineeId || d.id || '')}">اختيار</button>
-        </div>
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
-
-  // اختيار سريع لسائق → ينقلك لتبويب الحجز (إن كنت راكب)
-  wrap.querySelectorAll('button[data-pick]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if (currentUser && String(currentUser.userType).trim() === 'سائق') {
-        showToast('الحجز متاح للركاب فقط', 'warn');
+      if (!list || !list.length){
+        wrap.innerHTML = `<div class="alert alert-warning">لا يوجد سائقون حالياً</div>`;
         return;
       }
-      const id = btn.getAttribute('data-pick');
-      lastQuickDriverId = id;
-      document.querySelector('.tab[data-tab="book"]')?.click();
-      setTimeout(()=>{
-        const sel = document.getElementById('selectedDriver');
-        if(sel){
-          const match = drivers.find(x => (x.traineeId||x.id) == id);
-          if(match){
-            sel.value = (match.traineeId || match.id || '');
+
+      wrap.innerHTML = '';
+
+      const isViewerDriver = !!currentUser && String(currentUser.userType).trim() === 'سائق';
+
+      list.forEach(d=>{
+        const id    = sanitizeStr(d.traineeId || d.id || '');
+        const phone = getWaPhoneFromRecord(d);
+        const waUrl = phone ? buildWaUrl(phone, `مرحباً ${d.name}، أرغب بالتنسيق عبر "ساند".`) : '';
+
+        // 🔒 حالة القفل (غير متاح)
+        const locked   = isDriverLockedNow(id);
+        const lockEnd  = locked ? driverLockEnd(id) : null;
+        const untilTxt = (locked && lockEnd)
+          ? `غير متاح حتى ${lockEnd.toLocaleDateString('ar-SA')}`
+          : (locked ? 'غير متاح حالياً' : '');
+
+        // سطر التقييم يُخفى عن السائقين، ويُستبدل بشارة القفل عند الإقفال
+        const ratingHtml = (!isViewerDriver && !locked)
+          ? `<p class="rating">التقييم: ${'⭐'.repeat(Math.max(1, Math.min(5, Number(d.rating)||0)))} (${d.rating||0})</p>`
+          : '';
+
+        const card = document.createElement('div');
+        card.className = 'driver-card';
+        card.innerHTML = `
+          <div class="driver-info">
+            <div class="driver-details">
+              <h3>${sanitizeStr(d.name || 'بدون اسم')}</h3>
+              <p>الرقم: <strong>${id}</strong></p>
+              <p>الحي: ${sanitizeStr(d.neighborhood || '-')}</p>
+              ${locked ? `<div class="status-booked">${untilTxt}</div>` : ratingHtml}
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              ${waUrl ? `<a class="btn btn-whatsapp" href="${waUrl}" target="_blank" rel="noopener">واتساب</a>` : ''}
+              <button class="btn btn-primary" data-pick="${id}" ${locked ? 'disabled' : ''}>
+                ${locked ? 'غير متاح' : 'اختيار'}
+              </button>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+
+      // اختيار سريع للسائق (مع منع اختيار المقفول)
+      wrap.querySelectorAll('button[data-pick]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-pick');
+          if (!id) return;
+
+          if (isDriverLockedNow(id)){
+            showToast('السائق غير متاح حالياً', 'warn');
+            return;
           }
-        }
-      }, 50);
-    });
-  });
-}
 
+          if (currentUser && String(currentUser.userType).trim() === 'سائق') {
+            showToast('الحجز متاح للركاب فقط', 'warn');
+            return;
+          }
 
+          lastQuickDriverId = id;
+          document.querySelector('.tab[data-tab="book"]')?.click();
+          setTimeout(()=>{
+            const sel = document.getElementById('selectedDriver');
+            if (sel){
+              const match = (drivers || []).find(x => String(x.traineeId||x.id) === id);
+              if (match) sel.value = (match.traineeId || match.id || '');
+            }
+          }, 50);
+        });
+      });
+    }
     async function loadDrivers(){
       try{
+        // اجلب الأقفال النشطة أولاً
+        try{ await fetchActiveLocks(); }catch{}
+
         const q = $('#searchDriver')?.value?.trim() || '';
         const neigh = $('#filterNeighborhood')?.value || '';
         const {data} = await fetchWithCache('getDrivers', {}, {ttl:CACHE_TTL.getDrivers});
         let list = Array.isArray(data) ? data : [];
 
-        // فلترة
+        // فلترة نص/حي
         if(q){
           const nq = normalizeDigits(q).toLowerCase();
           list = list.filter(d =>
@@ -2026,6 +2087,12 @@ function renderDrivers(list){
         }
         if(neigh) list = list.filter(d => String(d.neighborhood||'') === neigh);
 
+        // ✅ استبعاد السائقين المقفولين (مقبولين/محجوزين)
+        list = list.filter(d => !isDriverLockedNow(d.traineeId || d.id));
+
+        // ترتيب بالاسم
+        list.sort((a,b)=> String(a.name||'').localeCompare(String(b.name||''), 'ar'));
+
         drivers = list;
         renderDrivers(list);
       }catch(e){
@@ -2033,62 +2100,129 @@ function renderDrivers(list){
       }
     }
 
+
+
+
     // ===== طلبات المستخدم =====
-    function renderPassengerRequests(list){
-      const host = document.getElementById('userRequestsList');
-      const badge = document.getElementById('requestsBadge');
-      if(!host) return;
 
-      if(!list || !list.length){
-        host.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
-        if(badge){ badge.textContent='0'; badge.style.display='none'; }
-        return;
+/* ============ طلباتي (راكب): عرض + زر حذف يحمل driverTraineeId ============ */
+// استبدل دالتك renderPassengerRequests بهذه النسخة
+function renderPassengerRequests(list){
+  const host  = document.getElementById('userRequestsList');
+  const badge = document.getElementById('requestsBadge');
+  if(!host) return;
+
+  if(!list || !list.length){
+    host.innerHTML = `<div class="alert alert-info">لا توجد طلبات حالياً</div>`;
+    if(badge){ badge.textContent='0'; badge.style.display='none'; }
+    return;
+  }
+
+  host.innerHTML = '';
+  let activeCount = 0;
+
+  list.forEach(r=>{
+    const stAr = String(r.status || 'معلق').trim();
+    if(stAr === 'معلق') activeCount++;
+
+    const cls =
+      stAr === 'مقبول' ? 'accepted' :
+      stAr === 'مرفوض' ? 'rejected' : '';
+
+    const daysArr = Array.isArray(r.selectedDays)
+      ? r.selectedDays
+      : String(r.selectedDays || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+    const stChip =
+        stAr === 'مقبول' ? '<div class="status-accepted">مقبول</div>' :
+        stAr === 'مرفوض' ? '<div class="status-rejected">مرفوض</div>' :
+        stAr === 'محذوف' ? '<div class="status-rejected">محذوف</div>' :
+                            '<div class="status-pending">قيد المراجعة</div>';
+
+
+    // ✅ الآن زر الحذف يحمل أيضًا driverTraineeId لتنظيف كاش السائق
+    const delBtn = (stAr === 'معلق')
+      ? `<button class="btn btn-reject" data-del="${r.id}" data-driver="${sanitizeStr(r.driverTraineeId||'')}">🗑️ حذف الطلب</button>`
+      : '';
+
+    const d = document.createElement('div');
+    d.className = `request-card ${cls}`;
+    d.innerHTML = `
+      <div class="request-header">
+        <div class="request-title">طلب #${(r.id ?? '-')}</div>
+        ${stChip}
+      </div>
+      <div class="request-details">
+        <p>السائق: <strong>${sanitizeStr(r.driverName || '-')}</strong></p>
+        <p>الأيام: ${daysArr.length ? daysArr.join('، ') : '-'}</p>
+        <p>المدة: ${r.duration || '-'} أسبوع</p>
+        ${r.notes ? `<p>ملاحظات: ${sanitizeStr(r.notes)}</p>` : ''}
+        ${delBtn}
+      </div>
+    `;
+    host.appendChild(d);
+  });
+
+  if(badge){
+    badge.textContent = String(activeCount);
+    badge.style.display = activeCount ? 'inline-flex' : 'none';
+  }
+
+  // ربط الحذف وتمرير driverTraineeId
+  host.querySelectorAll('button[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id       = btn.getAttribute('data-del');
+      const driverId = btn.getAttribute('data-driver') || '';
+      if(!id) return;
+      deleteMyPendingRequest(id, driverId);
+    });
+  });
+}
+
+
+/* ============ حذف طلب (راكب): مع تنظيف كاش السائق وإجبار التحديث ============ */
+// استبدل دالتك deleteMyPendingRequest بهذه النسخة
+async function deleteMyPendingRequest(requestId, driverId=''){
+  if(!currentUser){ showToast('سجّل الدخول أولاً','warn'); return; }
+  if(!confirm('هل تريد حذف هذا الطلب؟')) return;
+
+  try{
+    const resp = await sendToGoogleSheets('deleteRequest', {
+      requestId: String(requestId),
+      passengerTraineeId: currentUser.traineeId
+    });
+
+    if(resp && resp.success){
+      showToast('تم حذف الطلب','success');
+
+      // 🧹 تنظيف كاش الراكب
+      clearCache('getPassengerRequests', { passengerTraineeId: currentUser.traineeId });
+
+      // 🧹 تنظيف كاش السائق المتأثر (إن توفر رقم السائق)
+      if(driverId){
+        clearCache('getDriverRequests', { driverTraineeId: driverId });
       }
 
-      host.innerHTML = '';
-      let activeCount = 0;
+      // 🔄 جلب فوري من الشبكة لتحديث القوائم
+      await loadRequests({force:true});
 
-      list.forEach(r=>{
-        const stAr = String(r.status || 'معلق').trim(); // 'معلق' | 'مقبول' | 'مرفوض'
-        if(stAr === 'معلق') activeCount++;
+      // (اختياري) حدّث قائمة السائقين مباشرة لو كان الحجز المقبول يفتح قفلًا — هنا لا حاجة لأن الحذف للطلبات المعلقة فقط.
+      // await loadDrivers();
 
-        const cls =
-          stAr === 'مقبول' ? 'accepted' :
-          stAr === 'مرفوض' ? 'rejected' : '';
-
-        // الأيام من selectedDays (قد تكون مصفوفة أو نص)
-        const daysArr = Array.isArray(r.selectedDays)
-          ? r.selectedDays
-          : String(r.selectedDays || '').split(',').map(s=>s.trim()).filter(Boolean);
-
-        const stChip =
-          stAr === 'مقبول' ? '<div class="status-accepted">مقبول</div>' :
-          stAr === 'مرفوض' ? '<div class="status-rejected">مرفوض</div>' :
-                              '<div class="status-pending">قيد المراجعة</div>';
-
-        const d = document.createElement('div');
-        d.className = `request-card ${cls}`;
-        d.innerHTML = `
-          <div class="request-header">
-            <div class="request-title">طلب #${(r.id ?? '-')}</div>
-            ${stChip}
-          </div>
-          <div class="request-details">
-            <p>السائق: <strong>${(r.driverName || '-')}</strong></p>
-            <p>الأيام: ${daysArr.length ? daysArr.join('، ') : '-'}</p>
-            <p>المدة: ${r.duration || '-'} أسبوع</p>
-            ${r.notes ? `<p>ملاحظات: ${r.notes}</p>` : ''}
-          </div>
-        `;
-        host.appendChild(d);
-      });
-
-      if(badge){
-        badge.textContent = String(activeCount);
-        badge.style.display = activeCount ? 'inline-flex' : 'none';
-      }
+    }else{
+      showToast(resp?.error || 'تعذر حذف الطلب','error');
     }
+  }catch(e){
+    console.error(e);
+    showToast('خطأ في الاتصال','error');
+  }
+}
 
+/* ============ ربط زر التحديث ليجبر الجلب من الشبكة ============ */
+// ضع هذا الربط (يستبدل الربط القديم إن وُجد)
+document.getElementById('refreshRequestsBtn')?.addEventListener('click', ()=>{
+  loadRequests({force:true});
+});
 
     function renderDriverRequests(list){
   const host  = document.getElementById('userRequestsList');
@@ -2119,7 +2253,9 @@ function renderDrivers(list){
     const stChip =
       stAr === 'مقبول' ? '<div class="status-accepted">مقبول</div>' :
       stAr === 'مرفوض' ? '<div class="status-rejected">مرفوض</div>' :
+      stAr === 'محذوف' ? '<div class="status-rejected">محذوف</div>' :
                           '<div class="status-pending">قيد المراجعة</div>';
+
 
     const controls = (stAr === 'معلق')
       ? `
@@ -2189,6 +2325,10 @@ async function setRequestStatus(id, action){
         localStorage.removeItem('sand_cache_' + key);
       }catch{}
       await loadRequests();
+      try{
+          await fetchActiveLocks();  // يسحب الأقفال الجديدة
+          await loadDrivers();       // ينعش قائمة السائقين (ستظهر محجوز)
+        }catch{}
     }else{
       showToast(resp?.error || 'تعذر تحديث الحالة','error');
     }
@@ -2200,9 +2340,21 @@ async function setRequestStatus(id, action){
 
 
 
-async function loadRequests(){
+/* ===================== أدوات مساعدة للكاش ===================== */
+function clearCache(action, dataObj){
+  try{
+    const key = buildCacheKey(action, dataObj||{});
+    memCache.delete(key);
+    localStorage.removeItem('sand_cache_' + key);
+  }catch{}
+}
+
+/* ===================== طلباتي: تحميل مع خيار force ===================== */
+// استبدل دالتك loadRequests بهذه النسخة
+async function loadRequests(opts = {}) {
   if(!currentUser) return;
 
+  const force   = !!opts.force; // عند true: جلب مباشر من الشبكة
   const isDriver = String(currentUser.userType || '').trim() === 'سائق';
   const host     = document.getElementById('userRequestsList');
   const titleEl  = document.getElementById('requestsTitle');
@@ -2212,28 +2364,31 @@ async function loadRequests(){
 
   try{
     if (isDriver){
-      // ✅ السائق: قد ترجع الخدمة كائن {requests, stats}
-      const {data} = await fetchWithCache('getDriverRequests', {
-        driverTraineeId: currentUser.traineeId
-      }, { ttl: CACHE_TTL.getDriverRequests });
+      const {data} = await fetchWithCache(
+        'getDriverRequests',
+        { driverTraineeId: currentUser.traineeId },
+        force ? { ttl: 0, staleOK: false } : { ttl: CACHE_TTL.getDriverRequests }
+      );
 
-      const list  = Array.isArray(data) ? data
-                   : (Array.isArray(data?.requests) ? data.requests : []);
-      const pend  = (Array.isArray(data?.requests) && data?.stats?.pendingRequests != null)
-                      ? Number(data.stats.pendingRequests) : (list.filter(r=>String(r.status).trim()==='معلق').length);
+      const list = Array.isArray(data) ? data
+                 : (Array.isArray(data?.requests) ? data.requests : []);
+      const pendingCount = (Array.isArray(data?.requests) && data?.stats?.pendingRequests != null)
+        ? Number(data.stats.pendingRequests)
+        : list.filter(r => String(r.status||'').trim()==='معلق').length;
 
       renderDriverRequests(list);
 
       if(badge){
-        badge.textContent = String(pend || 0);
-        badge.style.display = pend ? 'inline-flex' : 'none';
+        badge.textContent = String(pendingCount || 0);
+        badge.style.display = pendingCount ? 'inline-flex' : 'none';
       }
 
     } else {
-      // ✅ الراكب: هذه الخدمة تُرجع مصفوفة مباشرة
-      const {data} = await fetchWithCache('getPassengerRequests', {
-        passengerTraineeId: currentUser.traineeId
-      }, { ttl: CACHE_TTL.getPassengerRequests });
+      const {data} = await fetchWithCache(
+        'getPassengerRequests',
+        { passengerTraineeId: currentUser.traineeId },
+        force ? { ttl: 0, staleOK: false } : { ttl: CACHE_TTL.getPassengerRequests }
+      );
 
       const list = Array.isArray(data) ? data : [];
       renderPassengerRequests(list);
@@ -2291,30 +2446,34 @@ async function loadRequests(){
 
 
     // ===== الحجز =====
-function prepareBookingUI(){
-  // 🔒 سدّ إضافي: لو somehow وصل السائق هنا نرجّعه للرئيسية
-  if (currentUser && String(currentUser.userType).trim() === 'سائق') {
-    showToast('الحجز متاح للركاب فقط', 'warn');
-    document.querySelector('.tab[data-tab="home"]')?.click();
-    return;
-  }
+    function prepareBookingUI(){
+      if (currentUser && String(currentUser.userType).trim() === 'سائق') {
+        showToast('الحجز متاح للركاب فقط', 'warn');
+        document.querySelector('.tab[data-tab="home"]')?.click();
+        return;
+      }
 
-  // تعبئة قائمة السائقين
-  const sel = document.getElementById('selectedDriver');
-  if(sel){
-    const cur = sel.value;
-    sel.innerHTML = `<option value="">اختر السائق</option>` + (drivers||[]).map(d=>{
-      const id = sanitizeStr(d.traineeId || d.id || '');
-      const nm = sanitizeStr(d.name || id || 'سائق');
-      return `<option value="${id}">${nm} — ${sanitizeStr(d.neighborhood||'-')}</option>`;
-    }).join('');
-    if(lastQuickDriverId) sel.value = lastQuickDriverId;
-    if(cur && !sel.value) sel.value = cur;
-  }
+      const sel = document.getElementById('selectedDriver');
+      if(sel){
+        const cur = sel.value;
+        // ✅ اعرض فقط غير المقفولين
+        const optionsHtml = (drivers||[])
+          .filter(d => !isDriverLockedNow(String(d.traineeId || d.id)))
+          .map(d=>{
+            const id   = sanitizeStr(d.traineeId || d.id || '');
+            const nm   = sanitizeStr(d.name || id || 'سائق');
+            const hood = sanitizeStr(d.neighborhood || '-');
+            return `<option value="${id}">${nm} — ${hood}</option>`;
+          }).join('');
 
-  // تعبئة أيام الأسبوع بحسب الإعدادات
-  fillDaysCheckboxes();
-}
+        sel.innerHTML = `<option value="">اختر السائق</option>` + optionsHtml;
+
+        if(lastQuickDriverId) sel.value = lastQuickDriverId;
+        if(cur && !sel.value) sel.value = cur;
+      }
+
+      fillDaysCheckboxes();
+    }
 
 
 
@@ -2366,6 +2525,32 @@ async function submitBooking(ev){
       requestDate: new Date().toISOString()
     };
 
+    // ✅ منع التكرار لنفس السائق
+    // اجلب طلبات الراكب وتأكد ما فيه طلب "معلق" أو "مقبول" لنفس السائق
+    try{
+      const r = await fetchWithCache('getPassengerRequests', {
+        passengerTraineeId: currentUser.traineeId
+      }, { ttl: 0, staleOK: false }); // جلب فوري من الشبكة
+
+      const myReqs = Array.isArray(r?.data) ? r.data : [];
+      const dup = myReqs.find(x => String(x.driverTraineeId) === String(driverId)
+        && ['معلق','مقبول'].includes(String(x.status||'').trim()));
+
+      if (dup){
+        showToast('عندك طلب قائم لنفس السائق — انتظر القبول/الرفض أولاً', 'warn');
+        // (اختياري) عرض انتقال سريع لقائمة الطلبات
+        document.querySelector('.tab[data-tab="requests"]')?.click();
+        // فك الزر قبل الخروج
+        if (btn){ btn.disabled=false; btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); }
+        return;
+      }
+    }catch(e){
+      // لو فشل الجلب نكمل بحذر أو نمنع؛ الأفضل المنع
+      showToast('تعذر التحقق من الطلبات الحالية — حاول مجدداً', 'error');
+      if (btn){ btn.disabled=false; btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); }
+      return;
+    }
+
     const resp = await sendToGoogleSheets('submitBooking', payload);
 
     if (resp && resp.success === true) {
@@ -2375,15 +2560,25 @@ async function submitBooking(ev){
       // فتح واتساب (اختياري إن وُجد رقم)
       const wa = getWaPhoneFromRecord(driver);
       if (wa) {
-        const msg = `مرحباً ${driver?.name||''}، أنا ${currentUser.name}. طلبت توصيل (${days.join('، ')}) لمدة ${duration} أسبوع(أسابيع) عبر "ساند".`;
+        const msg = `مرحباً ${driver?.name || ''}، معك ${currentUser.name}. أرغب بتنسيق توصيل في الأيام: ${days.join('، ')} لمدة ${duration} ${duration === 1 ? 'أسبوع' : 'أسابيع'} عبر «ساند» بالكلية التقنية بحقل. هل يناسبك الموعد؟`;
         window.open(buildWaUrl(wa, msg), '_blank', 'noopener');
       }
 
+
       await loadRequests();
       document.querySelector('.tab[data-tab="requests"]')?.click();
-    } else {
-      showToast(resp?.error || 'تعذر حفظ الطلب','error');
-    }
+      } else {
+        const err = String(resp?.error || '');
+        if (err === 'DRIVER_BUSY') {
+          showToast('السائق لديه طلب قائم حالياً — نأمل المحاولة لاحقاً أو اختيار سائق آخر','warn');
+          // (اختياري) ارجع المستخدم لتبويب السائقين:
+          // document.querySelector('.tab[data-tab="drivers"]')?.click();
+        } else if (err === 'DUPLICATE_REQUEST') {
+          showToast('لديك بالفعل طلب مع هذا السائق','warn');
+        } else {
+          showToast(err || 'تعذر حفظ الطلب','error');
+        }
+      }
   } catch (e) {
     console.error(e);
     showToast('خطأ في الاتصال','error');
@@ -2392,6 +2587,12 @@ async function submitBooking(ev){
   }
 }
 
+// داخل if (resp && resp.success === true) { ... }
+try{
+  const key = buildCacheKey('getPassengerRequests', { passengerTraineeId: currentUser.traineeId });
+  memCache.delete(key);
+  localStorage.removeItem('sand_cache_' + key);
+}catch{}
 
 
     // ===== التقييم =====
