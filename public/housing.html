@@ -256,9 +256,6 @@ body{
   border-top-color:#374151;
 }
 
-.dark .footer-text strong{
-  color:#9ca3af;
-}
 
 .dark .footer-text span{
   color:#e5e7eb;
@@ -660,12 +657,19 @@ body{
     }
 
     .footer-text strong{
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 0.85rem;      /* أو اتركها كما هي */
+      color: #0000003b;             /* ينسجم مع خلفية الفوتر */
+      font-weight: 800;
+      text-transform: none;    /* إلغاء Uppercase */
+      letter-spacing: 0;       /* بدون تباعد للغة العربية */
     }
+
+    .footer-dev{
+      font-size: .78rem;
+      color: rgba(0, 0, 0, 0.9);
+      font-weight: 700;
+    }
+
 
     .footer-text span{
       font-size: 0.9rem;
@@ -904,21 +908,21 @@ body{
 
   
   <!-- Footer محسّن -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-logo">
-        <span class="footer-icon">🏛️</span>
-        <div class="footer-text">
-          <strong>مبادرة من</strong>
-          <span>وحدة الخدمات الإرشادية وتطوير وكالة ضبط الجودة</span>
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <span class="footer-icon" aria-hidden="true">🏛️</span>
+          <div class="footer-text">
+            <strong>وكالة شؤون المتدربين — وحدة الخدمات الإرشادية</strong>
+            <span class="footer-dev">تطوير: وكالة ضبط الجودة</span>
+          </div>
+        </div>
+        <div class="footer-institute">
+          <span class="institute-badge">الكلية التقنية بحقل</span>
+          <span class="version">النسخة 1.0</span>
         </div>
       </div>
-      <div class="footer-institute">
-        <span class="institute-badge">الكلية التقنية بحقل</span>
-        <span class="version">النسخة 1.0</span>
-      </div>
-    </div>
-  </footer>
+    </footer>
 </div>
 </div>
 
