@@ -606,11 +606,17 @@
     }
 
     .footer-text strong{
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.6);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 0.85rem;      /* أو اتركها كما هي */
+      color: #fff;             /* ينسجم مع خلفية الفوتر */
+      font-weight: 800;
+      text-transform: none;    /* إلغاء Uppercase */
+      letter-spacing: 0;       /* بدون تباعد للغة العربية */
+    }
+
+    .footer-dev{
+      font-size: .78rem;
+      color: rgba(255,255,255,.9);
+      font-weight: 700;
     }
 
 
@@ -663,10 +669,7 @@
         align-items: center;
       }
       
-      .footer-text strong{
-        font-size: 0.65rem;
-      }
-      
+     
       .footer-text span{
         font-size: 0.7rem;  /* أصغر للجوال */
         line-height: 1.2;
@@ -1470,10 +1473,10 @@
     <footer class="site-footer">
       <div class="footer-content">
         <div class="footer-logo">
-          <span class="footer-icon">🏛️</span>
+          <span class="footer-icon" aria-hidden="true">🏛️</span>
           <div class="footer-text">
-            <strong>مبادرة من</strong>
-            <span>وحدة الخدمات الإرشادية وتطوير وكالة ضبط الجودة</span>
+            <strong>وكالة شؤون المتدربين — وحدة الخدمات الإرشادية</strong>
+            <span class="footer-dev">تطوير: وكالة ضبط الجودة</span>
           </div>
         </div>
         <div class="footer-institute">
@@ -1482,6 +1485,7 @@
         </div>
       </div>
     </footer>
+
 
   <!-- سكربت التطبيق -->
   <script>
