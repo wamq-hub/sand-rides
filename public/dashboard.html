@@ -117,6 +117,25 @@
     .badge-warning{ background:#fef3c7; color:#92400e; }
     .badge-danger{ background:#fee2e2; color:#991b1b; }
 
+    /* التبويبات */
+    .tabs-container{ background:var(--card-bg); border-radius:12px; overflow:hidden; margin-bottom:30px; }
+    .tabs-header{
+      display:flex; background:#f9fafb; border-bottom:2px solid var(--border);
+      gap:0; align-items:center;
+    }
+    .tab-btn{
+      flex:1; padding:16px; background:transparent; border:none; cursor:pointer;
+      font-size:1rem; font-weight:700; color:var(--muted); transition:all 0.3s;
+      border-bottom:3px solid transparent; margin-bottom:-2px;
+    }
+    .tab-btn:hover{ background:rgba(30,60,114,0.05); color:var(--tvtc-blue); }
+    .tab-btn.active{
+      color:var(--tvtc-blue); border-bottom-color:var(--tvtc-blue); background:rgba(30,60,114,0.03);
+    }
+    .tab-content{ padding:20px; display:none; animation:fadeIn 0.3s; }
+    .tab-content.active{ display:block; }
+    @keyframes fadeIn{ from{opacity:0.7} to{opacity:1} }
+
     .loading{ text-align:center; padding:40px; }
     .spinner{
       border:4px solid #f3f3f3; border-top:4px solid var(--tvtc-blue); border-radius:50%;
@@ -170,9 +189,35 @@
     <div class="container" id="dashboardContainer">
 
       <!-- الهيدر -->
+      <!-- الهيدر -->
+      <!-- عبارة ترحيب متلألئة -->
+      <div style="background: linear-gradient(135deg, var(--tvtc-blue) 0%, var(--tvtc-teal) 100%); 
+                  padding: 24px; border-radius: 12px; margin-bottom: 30px; 
+                  box-shadow: 0 4px 15px rgba(0,0,0,0.15); text-align: center;">
+        <h2 style="color: white; font-size: 1.8rem; margin: 0; font-weight: 800;
+                   animation: shimmer 2s infinite; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          ✨ مبادرة ساند ✨
+        </h2>
+        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 1rem;">
+          لوحة المتابعة
+        </p>
+      </div>
+
+      <style>
+        @keyframes shimmer {
+          0%, 100% {
+            opacity: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 0 20px rgba(255,255,255,0.3);
+          }
+          50% {
+            opacity: 0.85;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.6);
+          }
+        }
+      </style>
+
       <div class="header">
         <div class="header-info">
-          <h1>لوحة المتابعة - ساند</h1>
           <p>مرحباً، <strong id="instructorName">...</strong> (<span id="instructorRole">...</span>)</p>
         </div>
         <div class="header-actions">
@@ -185,92 +230,146 @@
         </div>
       </div>
 
-      <!-- بطاقات الإحصائيات -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">إجمالي المستخدمين</span>
-            <span class="stat-icon">👥</span>
-          </div>
-          <div class="stat-value" id="totalUsers">-</div>
+      <!-- تبويبات البيانات -->
+      <div class="tabs-container">
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="stats" onclick="switchTab('stats')">📊 الإحصائيات</button>
+          <button class="tab-btn" data-tab="pending" onclick="switchTab('pending')">⏳ الطلبات المعلقة</button>
+          <button class="tab-btn" data-tab="drivers" onclick="switchTab('drivers')">🚗 السائقين</button>
+          <button class="tab-btn" data-tab="passengers" onclick="switchTab('passengers')">👨‍🎓 المتدربين المحتاجين</button>
+          <button class="tab-btn" data-tab="driverPassengers" onclick="switchTab('driverPassengers')">🔗 السائقين مع المتدربين</button>
         </div>
 
-        <div class="stat-card success">
-          <div class="stat-header">
-            <span class="stat-title">السائقين النشطين</span>
-            <span class="stat-icon">🚗</span>
-          </div>
-          <div class="stat-value" id="totalDrivers">-</div>
-        </div>
+        <!-- تبويب الإحصائيات -->
+        <div class="tab-content active" id="stats" style="display:block;">
+          <div style="padding: 30px;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: var(--tvtc-blue);">📊 الإحصائيات الشاملة</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">إجمالي المستخدمين</span>
+                  <span class="stat-icon">👥</span>
+                </div>
+                <div class="stat-value" id="totalUsers">-</div>
+              </div>
 
-        <div class="stat-card warning">
-          <div class="stat-header">
-            <span class="stat-title">طلبات معلقة</span>
-            <span class="stat-icon">⏳</span>
-          </div>
-          <div class="stat-value" id="pendingRequests">-</div>
-        </div>
+              <div class="stat-card success">
+                <div class="stat-header">
+                  <span class="stat-title">السائقين النشطين</span>
+                  <span class="stat-icon">🚗</span>
+                </div>
+                <div class="stat-value" id="totalDrivers">-</div>
+              </div>
 
-        <div class="stat-card success">
-          <div class="stat-header">
-            <span class="stat-title">طلبات مقبولة</span>
-            <span class="stat-icon">✅</span>
-          </div>
-          <div class="stat-value" id="acceptedRequests">-</div>
-        </div>
+              <div class="stat-card warning">
+                <div class="stat-header">
+                  <span class="stat-title">طلبات معلقة</span>
+                  <span class="stat-icon">⏳</span>
+                </div>
+                <div class="stat-value" id="pendingRequests">-</div>
+              </div>
 
-        <div class="stat-card danger">
-          <div class="stat-header">
-            <span class="stat-title">طلبات مرفوضة</span>
-            <span class="stat-icon">❌</span>
-          </div>
-          <div class="stat-value" id="rejectedRequests">-</div>
-        </div>
+              <div class="stat-card success">
+                <div class="stat-header">
+                  <span class="stat-title">طلبات مقبولة</span>
+                  <span class="stat-icon">✅</span>
+                </div>
+                <div class="stat-value" id="acceptedRequests">-</div>
+              </div>
 
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">متوسط التقييم</span>
-            <span class="stat-icon">⭐</span>
-          </div>
-          <div class="stat-value" id="avgRating">-</div>
-        </div>
-      </div>
+              <div class="stat-card danger">
+                <div class="stat-header">
+                  <span class="stat-title">طلبات مرفوضة</span>
+                  <span class="stat-icon">❌</span>
+                </div>
+                <div class="stat-value" id="rejectedRequests">-</div>
+              </div>
 
-      <!-- جدول الطلبات المعلقة -->
-      <div class="table-container">
-        <div class="table-header">
-          <h2>📋 الطلبات المعلقة</h2>
-        </div>
-        <div id="pendingTable">
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>جاري التحميل...</p>
-          </div>
-        </div>
-      </div>
+              <div class="stat-card" style="border-left-color:#8b5cf6;">
+                <div class="stat-header">
+                  <span class="stat-title">السائقين مع المتدربين</span>
+                  <span class="stat-icon">🔗</span>
+                </div>
+                <div class="stat-value" id="driversWithPassengers">-</div>
+              </div>
 
-      <!-- جدول السائقين -->
-      <div class="table-container">
-        <div class="table-header">
-          <h2>🚗 السائقين المسجلين</h2>
-        </div>
-        <div id="driversTable">
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>جاري التحميل...</p>
+              <div class="stat-card" style="border-left-color:#f59e0b;">
+                <div class="stat-header">
+                  <span class="stat-title">متوسط التقييم</span>
+                  <span class="stat-icon">⭐</span>
+                </div>
+                <div class="stat-value" id="avgRating">-</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- جدول المتدربين المحتاجين إلى توصيل -->
-      <div class="table-container">
-        <div class="table-header">
-          <h2>👨‍🎓 المتدربون المحتاجون إلى توصيل</h2>
+        <!-- تبويب الطلبات المعلقة -->
+        <div class="tab-content" id="pending" style="display:none;">
+          <div class="table-container">
+            <div class="table-header">
+              <h2>📋 الطلبات المعلقة</h2>
+            </div>
+            <div id="pendingTable">
+              <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري التحميل...</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="passengersTable">
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>جاري التحميل...</p>
+
+        <!-- تبويب السائقين -->
+        <div class="tab-content" id="drivers" style="display:none;">
+          <div class="table-container">
+            <div class="table-header">
+              <h2>🚗 السائقين المسجلين</h2>
+            </div>
+            <div id="driversTable">
+              <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري التحميل...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- تبويب المتدربين المحتاجين -->
+        <div class="tab-content" id="passengers" style="display:none;">
+          <div class="table-container">
+            <div class="table-header">
+              <h2>👨‍🎓 المتدربون المحتاجون إلى توصيل</h2>
+            </div>
+            <div id="passengersTable">
+              <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري التحميل...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- تبويب السائقين مع المتدربين -->
+        <div class="tab-content" id="driverPassengers" style="display:none;">
+          <div class="table-container">
+            <div class="table-header">
+              <h2>🔗 السائقين مع المتدربين</h2>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <label for="statusFilter" style="font-weight:700; color:var(--muted);">تصفية حسب الحالة:</label>
+                <select id="statusFilter" style="padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); cursor:pointer;" onchange="handleFilterChange()">
+                  <option value="الكل">الكل</option>
+                  <option value="معلق">⏳ معلق</option>
+                  <option value="مقبول">✅ مقبول</option>
+                  <option value="مرفوض">❌ مرفوض</option>
+                </select>
+              </div>
+            </div>
+            <div id="driverPassengersTable">
+              <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري التحميل...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -393,6 +492,27 @@
   // تشغيل تحميل الإعدادات عند فتح الصفحة
   document.addEventListener('DOMContentLoaded', loadConfig);
 
+  // ===== تبديل التبويبات =====
+  function switchTab(tabName){
+    const tabs = document.querySelectorAll('.tab-content');
+    const btns = document.querySelectorAll('.tab-btn');
+    
+    tabs.forEach(tab => {
+      tab.classList.remove('active');
+      tab.style.display = 'none';
+    });
+    btns.forEach(btn => btn.classList.remove('active'));
+    
+    const activeTab = document.getElementById(tabName);
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    
+    if(activeTab) {
+      activeTab.classList.add('active');
+      activeTab.style.display = 'block';
+    }
+    if(activeBtn) activeBtn.classList.add('active');
+  }
+
   // ===== تسجيل الدخول =====
   document.getElementById('loginForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -452,9 +572,26 @@
         document.getElementById('rejectedRequests').textContent = data.rejectedRequests || 0;
         document.getElementById('avgRating').textContent = data.avgRating || '-';
       }
+
+      // حساب عدد السائقين مع المتدربين
+      try{
+        const allResp = await sendRequest('getAllRequests');
+        if (allResp.success && allResp.data){
+          const acceptedOnly = allResp.data.filter(r => r.status === 'مقبول');
+          const uniquePairs = new Set(
+            acceptedOnly.map(r => `${r.driverTraineeId}-${r.passengerTraineeId}`)
+          );
+          document.getElementById('driversWithPassengers').textContent = uniquePairs.size || 0;
+        }
+      }catch(e){
+        console.error('Error calculating pairs:', e);
+        document.getElementById('driversWithPassengers').textContent = 0;
+      }
+
       loadPendingRequests();
       loadDriversList();
-      loadPassengersList(); // ✅ مهم
+      loadPassengersList();
+      loadDriverPassengers();
     }catch(e){
       console.error('Load error:', e);
     }
@@ -510,6 +647,207 @@
         container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا يوجد سائقين</p>';
       }
     }catch(e){
+      container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
+    }
+  }
+
+  // ===== معالج تغيير الفلتر مع Loading =====
+  function handleFilterChange(){
+    const statusFilter = document.getElementById('statusFilter');
+    const container = document.getElementById('driverPassengersTable');
+    
+    // عطل الفلتر مؤقتاً
+    statusFilter.disabled = true;
+    statusFilter.style.opacity = '0.6';
+    statusFilter.style.cursor = 'not-allowed';
+    
+    // أظهر رسالة جاري التحديث
+    container.innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>جاري تحديث البيانات...</p>
+      </div>
+    `;
+    
+    // استدعِ الدالة الرئيسية
+    loadDriverPassengers().then(() => {
+      // أعد تفعيل الفلتر بعد الانتهاء
+      statusFilter.disabled = false;
+      statusFilter.style.opacity = '1';
+      statusFilter.style.cursor = 'pointer';
+    }).catch(err => {
+      console.error('Error:', err);
+      statusFilter.disabled = false;
+      statusFilter.style.opacity = '1';
+      statusFilter.style.cursor = 'pointer';
+    });
+  }
+
+  // ===== السائقين مع المتدربين =====
+  async function loadDriverPassengers(){
+    const container = document.getElementById('driverPassengersTable');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    try{
+      const resp = await sendRequest('getAllRequests');
+      
+      if (!resp.success) {
+        container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
+        return;
+      }
+
+      const allRequests = resp.data || [];
+      
+      // الحصول على الحالة المختارة من الفلتر
+      const selectedStatus = statusFilter ? statusFilter.value : 'الكل';
+      
+      // فلترة الطلبات حسب الحالة
+      let filteredRequests = allRequests;
+      if (selectedStatus !== 'الكل') {
+        filteredRequests = allRequests.filter(r => r.status === selectedStatus);
+      }
+
+      if (filteredRequests.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات بهذه الحالة</p>';
+        return;
+      }
+
+      // تجميع الطلبات حسب السائق
+      const driversMap = new Map();
+      filteredRequests.forEach(req => {
+        const driverId = req.driverTraineeId;
+        const driverName = req.driverName;
+        
+        if (!driversMap.has(driverId)) {
+          driversMap.set(driverId, {
+            driverId,
+            driverName,
+            passengers: []
+          });
+        }
+        
+        driversMap.get(driverId).passengers.push({
+          passengerName: req.passengerName,
+          passengerTraineeId: req.passengerTraineeId,
+          selectedDays: Array.isArray(req.selectedDays) ? req.selectedDays.join('، ') : req.selectedDays || '-',
+          status: req.status
+        });
+      });
+
+      // بناء الـ HTML
+      let html = '<div style="display:grid; gap:20px;">';
+      
+      // مصفوفة ألوان جميلة ومتنوعة
+      const colors = [
+        { bg: '#e8f4f8', border: '#00a49a', light: '#d1f4f0' },
+        { bg: '#e3f2fd', border: '#1e3c72', light: '#bbdefb' },
+        { bg: '#f3e5f5', border: '#8b5cf6', light: '#ede7f6' },
+        { bg: '#fff3e0', border: '#f59e0b', light: '#ffe0b2' },
+        { bg: '#f1f8e9', border: '#66bb6a', light: '#dcedc8' },
+        { bg: '#fce4ec', border: '#ec407a', light: '#f8bbd0' },
+        { bg: '#eceff1', border: '#78909c', light: '#cfd8dc' }
+      ];
+      
+      let driverIndex = 0;
+      driversMap.forEach(driver => {
+        const passengers = driver.passengers || [];
+        const color = colors[driverIndex % colors.length];
+        const driverNumber = driverIndex + 1;
+        
+        html += `<div style="
+          border-left: 5px solid ${color.border};
+          background-color: ${color.bg};
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          position: relative;
+        ">
+          <!-- رقم السائق -->
+          <div style="
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: ${color.border};
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          ">
+            ${driverNumber}
+          </div>
+
+          <h3 style="
+            margin-top: 10px;
+            margin-bottom: 12px;
+            color: ${color.border};
+            font-size: 1.3rem;
+            font-weight: 800;
+            padding-right: 50px;
+          ">🚗 ${driver.driverName || '-'}</h3>
+
+          <p style="
+            margin: 8px 0;
+            color: ${color.border};
+            font-weight: 600;
+            font-size: 0.95rem;
+          "><strong>🆔 رقم السائق:</strong> ${driver.driverId || '-'}</p>
+
+          <p style="
+            margin: 8px 0;
+            color: ${color.border};
+            font-weight: 600;
+            font-size: 0.95rem;
+          "><strong>👥 عدد المتدربين:</strong> ${passengers.length}</p>`;
+        
+        if(passengers.length > 0){
+          html += `<div style="
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid ${color.border};
+            opacity: 0.9;
+          ">
+            <strong style="color: ${color.border}; font-size: 1rem;">📋 المتدربين:</strong>
+            <ul style="margin-top: 12px; list-style: none; padding: 0;">`;
+          
+          passengers.forEach((p, idx) => {
+            const statusBadge = p.status === 'مقبول' ? '✅' : p.status === 'معلق' ? '⏳' : '❌';
+            html += `<li style="
+              padding: 12px;
+              margin: 8px 0;
+              background: ${color.light};
+              border-radius: 6px;
+              color: var(--text);
+              border-right: 3px solid ${color.border};
+            ">
+              <div style="display: flex; gap: 10px; align-items: start;">
+                <span style="font-weight: 800; color: ${color.border}; font-size: 1.2rem;">${idx + 1}.</span>
+                <div style="flex: 1;">
+                  ${statusBadge} <strong style="color: ${color.border};">${p.passengerName}</strong> (${p.passengerTraineeId})
+                  <br><span style="font-size: 0.85rem; color: ${color.border}; font-weight: 600;">📅 الأيام: ${p.selectedDays}</span>
+                </div>
+              </div>
+            </li>`;
+          });
+          
+          html += '</ul></div>';
+        }else{
+          html += `<p style="margin-top: 12px; color: ${color.border}; font-style: italic;">لا يوجد متدربين</p>`;
+        }
+        
+        html += '</div>';
+        driverIndex++;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+
+    }catch(e){
+      console.error('Driver passengers error:', e);
       container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
     }
   }
