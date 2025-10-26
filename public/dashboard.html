@@ -686,53 +686,24 @@
   // ===== السائقين مع المتدربين =====
   async function loadDriverPassengers(){
     const container = document.getElementById('driverPassengersTable');
-    const statusFilter = document.getElementById('statusFilter');
     
     try{
-      const resp = await sendRequest('getAllRequests');
+      const resp = await sendRequest('getDriversWithPassengers');
       
       if (!resp.success) {
         container.innerHTML = '<p style="text-align:center;color:var(--danger)">خطأ في التحميل</p>';
         return;
       }
 
-      const allRequests = resp.data || [];
+      const drivers = resp.data || [];
       
-      // الحصول على الحالة المختارة من الفلتر
-      const selectedStatus = statusFilter ? statusFilter.value : 'الكل';
-      
-      // فلترة الطلبات حسب الحالة
-      let filteredRequests = allRequests;
-      if (selectedStatus !== 'الكل') {
-        filteredRequests = allRequests.filter(r => r.status === selectedStatus);
-      }
+      // فلترة السائقين الذين لديهم متدربين فقط
+      const driversWithPassengers = drivers.filter(d => d.passengers && d.passengers.length > 0);
 
-      if (filteredRequests.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا توجد طلبات بهذه الحالة</p>';
+      if (driversWithPassengers.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">لا يوجد سائقين مرتبطين بمتدربين حالياً</p>';
         return;
       }
-
-      // تجميع الطلبات حسب السائق
-      const driversMap = new Map();
-      filteredRequests.forEach(req => {
-        const driverId = req.driverTraineeId;
-        const driverName = req.driverName;
-        
-        if (!driversMap.has(driverId)) {
-          driversMap.set(driverId, {
-            driverId,
-            driverName,
-            passengers: []
-          });
-        }
-        
-        driversMap.get(driverId).passengers.push({
-          passengerName: req.passengerName,
-          passengerTraineeId: req.passengerTraineeId,
-          selectedDays: Array.isArray(req.selectedDays) ? req.selectedDays.join('، ') : req.selectedDays || '-',
-          status: req.status
-        });
-      });
 
       // بناء الـ HTML
       let html = '<div style="display:grid; gap:20px;">';
@@ -748,8 +719,7 @@
         { bg: '#eceff1', border: '#78909c', light: '#cfd8dc' }
       ];
       
-      let driverIndex = 0;
-      driversMap.forEach(driver => {
+      driversWithPassengers.forEach((driver, driverIndex) => {
         const passengers = driver.passengers || [];
         const color = colors[driverIndex % colors.length];
         const driverNumber = driverIndex + 1;
@@ -789,14 +759,21 @@
             font-size: 1.3rem;
             font-weight: 800;
             padding-right: 50px;
-          ">🚗 ${driver.driverName || '-'}</h3>
+          ">🚗 ${driver.name || '-'}</h3>
 
           <p style="
             margin: 8px 0;
             color: ${color.border};
             font-weight: 600;
             font-size: 0.95rem;
-          "><strong>🆔 رقم السائق:</strong> ${driver.driverId || '-'}</p>
+          "><strong>🆔 رقم السائق:</strong> ${driver.traineeId || '-'}</p>
+
+          <p style="
+            margin: 8px 0;
+            color: ${color.border};
+            font-weight: 600;
+            font-size: 0.95rem;
+          "><strong>📍 الحي:</strong> ${driver.neighborhood || '-'}</p>
 
           <p style="
             margin: 8px 0;
@@ -816,7 +793,34 @@
             <ul style="margin-top: 12px; list-style: none; padding: 0;">`;
           
           passengers.forEach((p, idx) => {
-            const statusBadge = p.status === 'مقبول' ? '✅' : p.status === 'معلق' ? '⏳' : '❌';
+            const days = Array.isArray(p.selectedDays) ? p.selectedDays.join('، ') : p.selectedDays || '-';
+            
+            // حساب متوسط التقييم
+            let avgRating = 0;
+            let ratingDisplay = '';
+            if (p.ratings && p.ratings.length > 0) {
+              const totalStars = p.ratings.reduce((sum, r) => sum + (Number(r.stars) || 0), 0);
+              avgRating = (totalStars / p.ratings.length).toFixed(1);
+              const stars = '⭐'.repeat(Math.round(avgRating));
+              ratingDisplay = `<div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.6); border-radius: 4px;">
+                <strong style="color: ${color.border};">⭐ التقييم:</strong> ${stars} (${avgRating}/5)
+                <div style="margin-top: 6px; font-size: 0.8rem;">`;
+              
+              p.ratings.forEach((rating, rIdx) => {
+                const ratingStars = '⭐'.repeat(Number(rating.stars) || 0);
+                const notes = rating.notes ? `<br><em style="color: #666;">"${rating.notes}"</em>` : '';
+                ratingDisplay += `<div style="padding: 4px 0; border-bottom: 1px solid ${color.border}20;">
+                  ${ratingStars} ${notes}
+                </div>`;
+              });
+              
+              ratingDisplay += '</div></div>';
+            } else {
+              ratingDisplay = `<div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.4); border-radius: 4px; font-size: 0.85rem; color: #666;">
+                <em>لم يتم تقييم السائق بعد</em>
+              </div>`;
+            }
+            
             html += `<li style="
               padding: 12px;
               margin: 8px 0;
@@ -828,20 +832,18 @@
               <div style="display: flex; gap: 10px; align-items: start;">
                 <span style="font-weight: 800; color: ${color.border}; font-size: 1.2rem;">${idx + 1}.</span>
                 <div style="flex: 1;">
-                  ${statusBadge} <strong style="color: ${color.border};">${p.passengerName}</strong> (${p.passengerTraineeId})
-                  <br><span style="font-size: 0.85rem; color: ${color.border}; font-weight: 600;">📅 الأيام: ${p.selectedDays}</span>
+                  <strong style="color: ${color.border};">${p.name || p.passengerName}</strong> (${p.traineeId || p.studentId})
+                  <br><span style="font-size: 0.85rem; color: ${color.border}; font-weight: 600;">📅 الأيام: ${days}</span>
+                  ${ratingDisplay}
                 </div>
               </div>
             </li>`;
           });
           
           html += '</ul></div>';
-        }else{
-          html += `<p style="margin-top: 12px; color: ${color.border}; font-style: italic;">لا يوجد متدربين</p>`;
         }
         
         html += '</div>';
-        driverIndex++;
       });
       html += '</div>';
       container.innerHTML = html;
